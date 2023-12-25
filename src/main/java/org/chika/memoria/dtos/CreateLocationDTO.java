@@ -1,0 +1,30 @@
+package org.chika.memoria.dtos;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+import org.chika.memoria.models.Coordinate;
+import org.chika.memoria.models.Location;
+
+@Data
+public class CreateLocationDTO {
+    @NotNull
+    private Integer takenYear;
+    private Integer takenMonth;
+    private Integer takenDay;
+    private String takenTime;
+    private Coordinate coordinate;
+    @NotBlank
+    private String place;
+    @NotBlank
+    private String collectionId;
+
+    public Location convert() {
+        return Location.builder().takenYear(this.takenYear).takenMonth(this.takenMonth)
+                .takenDay(this.takenDay).takenTime(this.takenTime)
+                .coordinate(this.coordinate)
+                .place(this.place)
+                .collectionId(this.collectionId)
+                .build();
+    }
+}

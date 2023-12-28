@@ -42,7 +42,7 @@ public class ItemController {
             @ApiResponse(responseCode = "403", description = "Bad Request", content = @Content())
     })
     @GetMapping("/{itemId}")
-    public ResponseEntity<ItemDTO> getImageByItemId(@PathVariable final String itemId) {
+    public ResponseEntity<ItemDTO> getItemById(@PathVariable final String itemId) {
         log.debug("GET - get an item by ID {}", itemId);
         return ResponseEntity.ok(itemService.getImageByItemId(itemId));
     }

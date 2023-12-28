@@ -41,6 +41,18 @@ public class LocationController {
         return ResponseEntity.ok(locationService.findAllByCollectionId(email, collectionId).stream().map(LocationDTO::new).toList());
     }
 
+    @Operation(summary = "Get location by ID", responses = {
+            @ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
+    })
+    @GetMapping("/{id}")
+    public ResponseEntity<LocationDTO> getLocationId(@PathVariable final String id,
+                                                     @CurrentUser UserPrincipal userPrincipal) {
+        log.debug("GET - get location ID");
+        final var email = userPrincipal.getEmail();
+        return ResponseEntity.ok(new LocationDTO(locationService.findById(email, id)));
+    }
+
     @Operation(summary = "Create a location", responses = {
             @ApiResponse(responseCode = "201", description = "Created"),
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
@@ -87,7 +99,7 @@ public class LocationController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Void> deleteLocationById(@CurrentUser UserPrincipal userPrincipal,
-                                                     @PathVariable final String id) {
+                                                   @PathVariable final String id) {
         log.debug("DELETE - delete a location by id");
         locationService.deleteById(userPrincipal.getEmail(), id);
         return ResponseEntity.noContent().build();

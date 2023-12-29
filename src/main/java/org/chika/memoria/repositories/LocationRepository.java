@@ -11,11 +11,8 @@ import java.util.Optional;
 public interface LocationRepository extends MongoRepository<Location, String> {
 
     List<Location> findAllByCollectionIdOrderByTakenYearAscTakenMonthAscTakenDayAscTakenTimeAsc(String collectionId);
+
     Optional<Location> findByDriveItemId(String driveItemId);
 
     void deleteAllByCollectionId(String collectionId);
-
-    boolean existsByDriveItemIdAndCollectionId(String driveItemId, String collectionId);
-
-    List<Location> findAllByTakenYear(Integer takenYear);
 }

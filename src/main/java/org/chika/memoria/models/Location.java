@@ -37,6 +37,9 @@ public class Location {
     @Field("place")
     private String place;
 
+    @Field("description")
+    private String description;
+
     @Field("collectionId")
     private String collectionId;
 

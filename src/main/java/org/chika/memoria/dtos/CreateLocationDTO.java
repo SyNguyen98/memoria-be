@@ -16,6 +16,7 @@ public class CreateLocationDTO {
     private Coordinate coordinate;
     @NotBlank
     private String place;
+    private String description;
     @NotBlank
     private String collectionId;
 
@@ -24,6 +25,7 @@ public class CreateLocationDTO {
                 .takenDay(this.takenDay).takenTime(this.takenTime)
                 .coordinate(this.coordinate)
                 .place(this.place)
+                .description(this.description)
                 .collectionId(this.collectionId)
                 .build();
     }

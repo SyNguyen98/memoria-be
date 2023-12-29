@@ -7,7 +7,7 @@ spring:
     allow-bean-definition-overriding: true
   data:
     mongodb:
-      uri: mongodb+srv://cluster0.dgqgb.mongodb.net/memoria
+      uri: mongodb+srv://chika:41PLGL6MMyhxmMvUjy17@cluster0.dgqgb.mongodb.net/memoria
       auto-index-creation: true
   security:
     oauth2:

@@ -7,7 +7,7 @@ spring:
     allow-bean-definition-overriding: true
   data:
     mongodb:
-      uri: mongodb-uri
+      uri: mongodb+srv://mongodb-uri
       auto-index-creation: true
   security:
     oauth2:

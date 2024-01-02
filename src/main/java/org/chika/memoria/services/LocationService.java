@@ -27,7 +27,7 @@ public class LocationService {
 
     @Transactional(readOnly = true)
     public List<Location> findAllByCollectionId(final String ownerEmail, final String collectionId) {
-        if (collectionRepository.existsByIdAndOwnerEmail(collectionId, ownerEmail)) {
+        if (collectionRepository.existsByIdAndOwnerEmailOrUserEmailsContains(collectionId, ownerEmail, ownerEmail)) {
             return locationRepository.findAllByCollectionIdOrderByTakenYearAscTakenMonthAscTakenDayAscTakenTimeAsc(collectionId);
         }
         throw new BadRequestException("You are not owner of this collection");
@@ -37,7 +37,7 @@ public class LocationService {
     public Location findById(final String ownerEmail, String id) {
         final Location location = locationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(Location.class.getSimpleName(), "id", id));
-        if (collectionRepository.existsByIdAndOwnerEmail(location.getCollectionId(), ownerEmail)) {
+        if (collectionRepository.existsByIdAndOwnerEmailOrUserEmailsContains(location.getCollectionId(), ownerEmail, ownerEmail)) {
             return location;
         }
         throw new BadRequestException("You don't have permission to get this location");
@@ -77,8 +77,9 @@ public class LocationService {
     public void deleteAllByCollectionId(final String ownerEmail, final String collectionId) {
         if (collectionRepository.existsByIdAndOwnerEmail(collectionId, ownerEmail)) {
             locationRepository.deleteAllByCollectionId(collectionId);
+        } else {
+            throw new BadRequestException("You are not owner of this collection to delete locations");
         }
-        throw new BadRequestException("You are not owner of this collection to delete locations");
     }
 
     @Transactional
@@ -92,8 +93,9 @@ public class LocationService {
             collectionRepository.save(collection);
 
             locationRepository.delete(location);
+        } else {
+            throw new BadRequestException("You don't have permission update this location");
         }
-        throw new BadRequestException("You don't have permission update this location");
     }
 
     private Collection getCollectionById(String id) {

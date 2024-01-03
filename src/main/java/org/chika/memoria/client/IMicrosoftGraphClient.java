@@ -12,7 +12,7 @@ import java.util.Map;
 @FeignClient(name = "MicrosoftGraphClient", url = "https://graph.microsoft.com/v1.0")
 public interface IMicrosoftGraphClient {
 
-    @GetMapping("/drive/items/{itemId}/children")
+    @GetMapping("/drive/items/{itemId}/children?$expand=thumbnails")
     ResponseEntity<ListItem> getAllChildrenByItemId(@PathVariable String itemId);
 
     @GetMapping("/drive/items/{itemId}")

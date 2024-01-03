@@ -1,6 +1,7 @@
 package org.chika.memoria.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -30,10 +31,11 @@ public class ItemController {
             @ApiResponse(responseCode = "403", description = "Bad Request", content = @Content())
     })
     @GetMapping
-    public ResponseEntity<List<ItemDTO>> getAllImagesByDriveItemId(@CurrentUser UserPrincipal userPrincipal,
-                                                                   @RequestParam final String driveItemId) {
+    public ResponseEntity<List<ItemDTO>> getAllItemsByDriveItemId(@CurrentUser UserPrincipal userPrincipal,
+        @RequestParam final String driveItemId,
+        @Parameter(description = "value is \"large\", \"medium\" or \"small\"") @RequestParam(required = false) final String thumbnailSize) {
         log.debug("GET - get all items by driveItemId {}", driveItemId);
-        return ResponseEntity.ok(itemService.getAllImagesByDriveItemId(userPrincipal.getEmail(), driveItemId));
+        return ResponseEntity.ok(itemService.getAllItemsByDriveItemId(userPrincipal.getEmail(), driveItemId, thumbnailSize));
     }
 
     @Operation(summary = "Get an item by ID", responses = {

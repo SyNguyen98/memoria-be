@@ -8,14 +8,19 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.chika.memoria.dtos.CollectionDTO;
-import org.chika.memoria.dtos.CreateCollectionDTO;
+import org.chika.memoria.dtos.CreateUpdateCollectionDTO;
 import org.chika.memoria.models.Collection;
 import org.chika.memoria.security.CurrentUser;
 import org.chika.memoria.security.UserPrincipal;
 import org.chika.memoria.services.CollectionService;
+import org.chika.memoria.utils.PaginationUtil;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -34,23 +39,26 @@ public class CollectionController {
             @ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
     })
-    @GetMapping
-    public ResponseEntity<List<CollectionDTO>> getAllCollections(@CurrentUser UserPrincipal userPrincipal) {
+    @GetMapping("/owned")
+    public ResponseEntity<List<CollectionDTO>> getAllCollectionsThatOwned(@CurrentUser UserPrincipal userPrincipal, Pageable pageable) {
         log.debug("GET - get all collections that current user owned");
-        final var email = userPrincipal.getEmail();
-        return ResponseEntity.ok(collectionService.findAllByOwnerEmail(email).stream().map(CollectionDTO::new).toList());
+        final String email = userPrincipal.getEmail();
+        final Page<Collection> page = collectionService.findAllByOwnerEmail(email, pageable);
+        final HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        return ResponseEntity.ok().headers(headers).body(page.stream().map(CollectionDTO::new).toList());
     }
 
     @Operation(summary = "Get all collections that user have access to", responses = {
             @ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
     })
-    @GetMapping("/all")
-    public ResponseEntity<List<CollectionDTO>> getAllCollectionsThatHaveAccess(@CurrentUser UserPrincipal userPrincipal) {
+    @GetMapping
+    public ResponseEntity<List<CollectionDTO>> getAllCollectionsThatHaveAccess(@CurrentUser UserPrincipal userPrincipal, Pageable pageable) {
         log.debug("GET - get all collections that user have access to");
         final String email = userPrincipal.getEmail();
-        final List<Collection> collections = collectionService.findAllByOwnerEmailOrUserEmail(email);
-        return ResponseEntity.ok(collections.stream().map(CollectionDTO::new).toList());
+        final Page<Collection> page = collectionService.findAllByOwnerEmailOrUserEmail(email, pageable);
+        final HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        return ResponseEntity.ok().headers(headers).body(page.stream().map(CollectionDTO::new).toList());
     }
 
     @Operation(summary = "Get a collection by ID", responses = {
@@ -71,7 +79,7 @@ public class CollectionController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<CollectionDTO> createCollection(@CurrentUser UserPrincipal userPrincipal,
-                                                          @RequestBody final CreateCollectionDTO collectionDTO) throws URISyntaxException {
+                                                          @RequestBody final CreateUpdateCollectionDTO collectionDTO) throws URISyntaxException {
         log.debug("POST - create a collection");
         final var collection = collectionService.create(userPrincipal.getEmail(), collectionDTO);
         return ResponseEntity.created(new URI("/api/collections/" + collection.getId())).body(new CollectionDTO(collection));
@@ -84,9 +92,9 @@ public class CollectionController {
     })
     @PutMapping
     public ResponseEntity<CollectionDTO> updateCollection(@CurrentUser UserPrincipal userPrincipal,
-                                                          @RequestBody @Valid final Collection collection) {
+                                                          @RequestBody @Valid final CreateUpdateCollectionDTO collectionDTO) {
         log.debug("PUT - update a collection");
-        return ResponseEntity.ok(new CollectionDTO(collectionService.update(userPrincipal.getEmail(), collection)));
+        return ResponseEntity.ok(new CollectionDTO(collectionService.update(userPrincipal.getEmail(), collectionDTO)));
     }
 
     @Operation(summary = "Delete a collection by ID", responses = {

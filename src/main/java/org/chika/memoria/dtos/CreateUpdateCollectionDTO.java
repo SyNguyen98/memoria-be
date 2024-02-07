@@ -7,14 +7,18 @@ import org.chika.memoria.models.Collection;
 import java.util.Set;
 
 @Data
-public class CreateCollectionDTO {
+public class CreateUpdateCollectionDTO {
 
+    private String id;
     @NotBlank
     private String name;
     private String description;
     private Set<String> userEmails;
 
     public Collection convert(final String ownerEmail) {
-        return Collection.builder().name(name).description(description).ownerEmail(ownerEmail).userEmails(userEmails).build();
+        return Collection.builder().name(name)
+                .description(description)
+                .ownerEmail(ownerEmail)
+                .userEmails(userEmails).build();
     }
 }

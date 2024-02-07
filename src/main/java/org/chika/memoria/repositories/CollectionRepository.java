@@ -1,16 +1,16 @@
 package org.chika.memoria.repositories;
 
 import org.chika.memoria.models.Collection;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
 
 @Repository
 public interface CollectionRepository extends MongoRepository<Collection, String> {
 
-    List<Collection> findAllByOwnerEmailOrderByLastModifiedDateDesc(String ownerEmail);
-    List<Collection> findAllByOwnerEmailOrUserEmailsContainsOrderByLastModifiedDateDesc(String ownerEmail, String userEmail);
+    Page<Collection> findAllByOwnerEmailOrderByLastModifiedDateDesc(String ownerEmail, Pageable pageable);
+    Page<Collection> findAllByOwnerEmailOrUserEmailsContainsOrderByLastModifiedDateDesc(String ownerEmail, String userEmail, Pageable pageable);
     boolean existsByIdAndOwnerEmail(String id, String ownerEmail);
     boolean existsByIdAndOwnerEmailOrUserEmailsContains(String id, String ownerEmail, String userEmail);
 }

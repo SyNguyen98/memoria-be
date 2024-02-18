@@ -42,10 +42,10 @@ memoria:
 
 application:
   corsOrigins:
-    - http://localhost:3000
+    - http://localhost:5173
   oauth2:
     authorizedRedirectUris:
-      - http://localhost:3000
+      - http://localhost:5173
   security:
     tokenExpiration: 864000000    # milliseconds
     privateJwtKey: |

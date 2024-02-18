@@ -2,18 +2,19 @@ package org.chika.memoria.services;
 
 import lombok.RequiredArgsConstructor;
 import org.chika.memoria.client.MicrosoftGraphClient;
-import org.chika.memoria.dtos.CreateLocationDTO;
+import org.chika.memoria.dtos.CreateUpdateLocationDTO;
 import org.chika.memoria.exceptions.BadRequestException;
 import org.chika.memoria.exceptions.ResourceNotFoundException;
 import org.chika.memoria.models.Collection;
 import org.chika.memoria.models.Location;
 import org.chika.memoria.repositories.CollectionRepository;
 import org.chika.memoria.repositories.LocationRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -26,9 +27,9 @@ public class LocationService {
     private final MicrosoftGraphClient microsoftGraphClient;
 
     @Transactional(readOnly = true)
-    public List<Location> findAllByCollectionId(final String ownerEmail, final String collectionId) {
+    public Page<Location> findAllByCollectionId(final String ownerEmail, final String collectionId, Pageable pageable) {
         if (collectionRepository.existsByIdAndOwnerEmailOrUserEmailsContains(collectionId, ownerEmail, ownerEmail)) {
-            return locationRepository.findAllByCollectionIdOrderByTakenYearAscTakenMonthAscTakenDayAscTakenTimeAsc(collectionId);
+            return locationRepository.findAllByCollectionIdOrderByTakenYearAscTakenMonthAscTakenDayAscTakenTimeAsc(collectionId, pageable);
         }
         throw new BadRequestException("You are not owner of this collection");
     }
@@ -44,7 +45,7 @@ public class LocationService {
     }
 
     @Transactional
-    public Location create(final String ownerEmail, final CreateLocationDTO locationDTO) {
+    public Location create(final String ownerEmail, final CreateUpdateLocationDTO locationDTO) {
         final Collection collection = getCollectionById(locationDTO.getCollectionId());
         if (collection.getOwnerEmail().equals(ownerEmail)) {
             final Location location = locationDTO.convert();
@@ -61,9 +62,12 @@ public class LocationService {
     }
 
     @Transactional
-    public Location update(final String ownerEmail, final Location location) {
+    public Location update(final String ownerEmail, final CreateUpdateLocationDTO locationDTO) {
+        Location location = locationRepository.findById(locationDTO.getId())
+                .orElseThrow(() -> new ResourceNotFoundException(Location.class.getSimpleName(), "id", locationDTO.getId()));
         final Collection collection = getCollectionById(location.getCollectionId());
         if (collection.getOwnerEmail().equals(ownerEmail)) {
+            location = locationDTO.update(location);
 
             collection.setLastModifiedDate(Instant.now());
             collectionRepository.save(collection);

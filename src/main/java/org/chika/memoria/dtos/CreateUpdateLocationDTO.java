@@ -7,7 +7,9 @@ import org.chika.memoria.models.Coordinate;
 import org.chika.memoria.models.Location;
 
 @Data
-public class CreateLocationDTO {
+public class CreateUpdateLocationDTO {
+
+    private String id;
     @NotNull
     private Integer takenYear;
     private Integer takenMonth;
@@ -28,5 +30,16 @@ public class CreateLocationDTO {
                 .description(this.description)
                 .collectionId(this.collectionId)
                 .build();
+    }
+
+    public Location update(final Location location) {
+        location.setTakenYear(this.takenYear);
+        location.setTakenMonth(this.takenMonth);
+        location.setTakenDay(this.takenDay);
+        location.setTakenTime(this.takenTime);
+        location.setCoordinate(this.coordinate);
+        location.setPlace(this.place);
+        location.setDescription(this.description);
+        return location;
     }
 }

@@ -1,15 +1,15 @@
 package org.chika.memoria.services;
 
 import lombok.AllArgsConstructor;
-import org.chika.memoria.dtos.CreateCollectionDTO;
+import org.chika.memoria.dtos.CreateUpdateCollectionDTO;
 import org.chika.memoria.exceptions.BadRequestException;
 import org.chika.memoria.exceptions.ResourceNotFoundException;
 import org.chika.memoria.models.Collection;
 import org.chika.memoria.repositories.CollectionRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -26,16 +26,16 @@ public class CollectionService {
         throw new BadRequestException("You are not owner of this collection");
     }
 
-    public List<Collection> findAllByOwnerEmail(final String ownerEmail) {
-        return collectionRepository.findAllByOwnerEmailOrderByLastModifiedDateDesc(ownerEmail);
+    public Page<Collection> findAllByOwnerEmail(final String ownerEmail, Pageable pageable) {
+        return collectionRepository.findAllByOwnerEmailOrderByLastModifiedDateDesc(ownerEmail, pageable);
     }
 
-    public List<Collection> findAllByOwnerEmailOrUserEmail(final String userEmail) {
-        return collectionRepository.findAllByOwnerEmailOrUserEmailsContainsOrderByLastModifiedDateDesc(userEmail, userEmail);
+    public Page<Collection> findAllByOwnerEmailOrUserEmail(final String userEmail, Pageable pageable) {
+        return collectionRepository.findAllByOwnerEmailOrUserEmailsContainsOrderByLastModifiedDateDesc(userEmail, userEmail, pageable);
     }
 
     @Transactional
-    public Collection create(final String ownerEmail, final CreateCollectionDTO collectionDTO) {
+    public Collection create(final String ownerEmail, final CreateUpdateCollectionDTO collectionDTO) {
         final Collection collection = collectionDTO.convert(ownerEmail);
 
 //        final File file = new File(String.format("%s/%s", System.getProperty("java.io.tmpdir"), image.getOriginalFilename()));
@@ -49,8 +49,13 @@ public class CollectionService {
     }
 
     @Transactional
-    public Collection update(final String userEmail, final Collection collection) {
-        if (collectionRepository.existsByIdAndOwnerEmail(collection.getId(), userEmail)) {
+    public Collection update(final String ownerEmail, final CreateUpdateCollectionDTO collectionDTO) {
+        final Collection collection = collectionRepository.findById(collectionDTO.getId())
+                .orElseThrow(() -> new ResourceNotFoundException(Collection.class.getName(), "id", collectionDTO.getId()));
+        if (collection.getOwnerEmail().equals(ownerEmail)) {
+            collection.setName(collectionDTO.getName());
+            collection.setDescription(collectionDTO.getDescription());
+            collection.setUserEmails(collectionDTO.getUserEmails());
             return collectionRepository.save(collection);
         }
         throw new BadRequestException("You don't have permission to update this collection");

@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Set;
 
 @Document("collections")
@@ -22,6 +23,9 @@ public class Collection {
 
     @Field("description")
     private String description;
+
+    @Field("tags")
+    private List<Tag> tags;
 
     @Field("lastModifiedDate")
     private Instant lastModifiedDate;

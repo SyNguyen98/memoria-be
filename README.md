@@ -1,7 +1,6 @@
 # MEMORIA BACKEND
 
 [![Build status](https://github.com/SyNguyen98/memoria-be/actions/workflows/deploy-azure-web-app.yml/badge.svg?branch=master)](https://github.com/SyNguyen98/memoria-be/actions/workflows/deploy-azure-web-app.yml)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 The backend provide REST API for Memoria Application.
 
@@ -47,5 +46,5 @@ Step-by-step guide on how to install and set up the project.
 
 ```bash
 git clone https://github.com/SyNguyen98/memoria-be.git
-cd your-repo
+cd memoria-be
 ./mvnw clean install

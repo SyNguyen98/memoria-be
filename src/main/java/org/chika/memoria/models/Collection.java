@@ -35,4 +35,8 @@ public class Collection {
 
     @Field("userEmails")
     private Set<String> userEmails;
+
+    @Field("driveItemId")
+//    @Indexed(unique = true)
+    private String driveItemId;
 }

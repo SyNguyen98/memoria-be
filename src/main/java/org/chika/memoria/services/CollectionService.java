@@ -7,6 +7,7 @@ import org.chika.memoria.exceptions.BadRequestException;
 import org.chika.memoria.exceptions.ResourceNotFoundException;
 import org.chika.memoria.models.Collection;
 import org.chika.memoria.repositories.CollectionRepository;
+import org.chika.memoria.repositories.LocationRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ public class CollectionService {
     private static final String ROOT_DRIVE_ITEM_ID = "6713014C02E57D90!113706";
 
     private final CollectionRepository collectionRepository;
+    private final LocationRepository locationRepository;
     private final MicrosoftGraphClient microsoftGraphClient;
 
     public Collection findById(final String userEmail, final String id) {
@@ -68,6 +70,7 @@ public class CollectionService {
     @Transactional
     public void deleteById(final String userEmail, final String id) {
         if (collectionRepository.existsByIdAndOwnerEmail(id, userEmail)) {
+            locationRepository.deleteAllByCollectionId(id);
             collectionRepository.deleteById(id);
         } else {
             throw new BadRequestException("You don't have permission to delete this collection");

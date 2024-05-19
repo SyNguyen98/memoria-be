@@ -1,11 +1,13 @@
 package org.chika.memoria.services;
 
 import lombok.AllArgsConstructor;
+import org.chika.memoria.client.MicrosoftGraphClient;
 import org.chika.memoria.dtos.CreateUpdateCollectionDTO;
 import org.chika.memoria.exceptions.BadRequestException;
 import org.chika.memoria.exceptions.ResourceNotFoundException;
 import org.chika.memoria.models.Collection;
 import org.chika.memoria.repositories.CollectionRepository;
+import org.chika.memoria.repositories.LocationRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -15,7 +17,11 @@ import org.springframework.transaction.annotation.Transactional;
 @AllArgsConstructor
 public class CollectionService {
 
+    private static final String ROOT_DRIVE_ITEM_ID = "6713014C02E57D90!113706";
+
     private final CollectionRepository collectionRepository;
+    private final LocationRepository locationRepository;
+    private final MicrosoftGraphClient microsoftGraphClient;
 
     public Collection findById(final String userEmail, final String id) {
         final var collection = collectionRepository.findById(id)
@@ -37,6 +43,9 @@ public class CollectionService {
     @Transactional
     public Collection create(final String ownerEmail, final CreateUpdateCollectionDTO collectionDTO) {
         final Collection collection = collectionDTO.createNew(ownerEmail);
+
+        final String driveItemId = microsoftGraphClient.createFolderInDriveItem(ROOT_DRIVE_ITEM_ID, collectionDTO.getName()).getId();
+        collection.setDriveItemId(driveItemId);
 
 //        final File file = new File(String.format("%s/%s", System.getProperty("java.io.tmpdir"), image.getOriginalFilename()));
 //        image.transferTo(file);
@@ -61,6 +70,7 @@ public class CollectionService {
     @Transactional
     public void deleteById(final String userEmail, final String id) {
         if (collectionRepository.existsByIdAndOwnerEmail(id, userEmail)) {
+            locationRepository.deleteAllByCollectionId(id);
             collectionRepository.deleteById(id);
         } else {
             throw new BadRequestException("You don't have permission to delete this collection");

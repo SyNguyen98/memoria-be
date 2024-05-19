@@ -20,8 +20,6 @@ import java.time.Instant;
 @RequiredArgsConstructor
 public class LocationService {
 
-    private static final String ROOT_DRIVE_ITEM_ID = "6713014C02E57D90!113706";
-
     private final LocationRepository locationRepository;
     private final CollectionRepository collectionRepository;
     private final MicrosoftGraphClient microsoftGraphClient;
@@ -50,7 +48,7 @@ public class LocationService {
         if (collection.getOwnerEmail().equals(ownerEmail)) {
             final Location location = locationDTO.convert();
 
-            final String driveItemId = microsoftGraphClient.createFolderInDriveItem(ROOT_DRIVE_ITEM_ID, locationDTO.getPlace()).getId();
+            final String driveItemId = microsoftGraphClient.createFolderInDriveItem(collection.getDriveItemId(), locationDTO.getPlace()).getId();
             location.setDriveItemId(driveItemId);
 
             collection.setLastModifiedDate(Instant.now());

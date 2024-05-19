@@ -35,6 +35,7 @@ public class CreateUpdateCollectionDTO {
         collection.setDescription(this.description);
         collection.setTags(this.tags);
         collection.setLastModifiedDate(Instant.now());
+        collection.setUserEmails(this.userEmails);
         return collection;
     }
 }

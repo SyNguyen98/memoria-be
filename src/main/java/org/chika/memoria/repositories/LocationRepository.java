@@ -11,7 +11,7 @@ import java.util.Optional;
 @Repository
 public interface LocationRepository extends MongoRepository<Location, String> {
 
-    Page<Location> findAllByCollectionIdOrderByTakenYearAscTakenMonthAscTakenDayAscTakenTimeAsc(String collectionId, Pageable pageable);
+    Page<Location> findAllByCollectionIdOrderByTakenYearDescTakenMonthDescTakenDayDescTakenTimeDesc(String collectionId, Pageable pageable);
 
     Optional<Location> findByDriveItemId(String driveItemId);
 

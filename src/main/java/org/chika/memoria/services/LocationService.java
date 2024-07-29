@@ -27,7 +27,7 @@ public class LocationService {
     @Transactional(readOnly = true)
     public Page<Location> findAllByCollectionId(final String ownerEmail, final String collectionId, Pageable pageable) {
         if (collectionRepository.existsByIdAndOwnerEmailOrUserEmailsContains(collectionId, ownerEmail, ownerEmail)) {
-            return locationRepository.findAllByCollectionIdOrderByTakenYearAscTakenMonthAscTakenDayAscTakenTimeAsc(collectionId, pageable);
+            return locationRepository.findAllByCollectionIdOrderByTakenYearDescTakenMonthDescTakenDayDescTakenTimeDesc(collectionId, pageable);
         }
         throw new BadRequestException("You are not owner of this collection");
     }

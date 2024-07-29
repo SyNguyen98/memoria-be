@@ -7,15 +7,15 @@ spring:
     allow-bean-definition-overriding: true
   data:
     mongodb:
-      uri: mongodb+srv://chika:41PLGL6MMyhxmMvUjy17@cluster0.dgqgb.mongodb.net/memoria
+      uri: mongodb+srv://localhost:27017/memoria
       auto-index-creation: true
   security:
     oauth2:
       client:
         registration:
           google:
-            clientId: 9530210169-132gqrs62ptiv6amaktskd3peuhj1kjg.apps.googleusercontent.com
-            clientSecret: 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
+            clientId: clientId
+            clientSecret: clientSecret
             redirectUri: "{baseUrl}/oauth2/callback/{registrationId}"
             scope:
               - email
@@ -36,8 +36,8 @@ springdoc:
 
 memoria:
   microsoft:
-    clientId: 99d12713-4860-4cfc-adf3-1c1f931fdb6c
-    clientSecret: ZhC8Q~YxUaRuWqkA2fiwPF~xZFngWhBj-IInocjI
+    clientId: clientId
+    clientSecret: clientSecret
     redirectUri: http://localhost:3000/login/microsoft
 
 application:

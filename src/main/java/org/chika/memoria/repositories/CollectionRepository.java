@@ -9,8 +9,11 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface CollectionRepository extends MongoRepository<Collection, String> {
 
-    Page<Collection> findAllByOwnerEmailOrderByLastModifiedDateDesc(String ownerEmail, Pageable pageable);
+    Page<Collection> findAllByOwnerEmail(String ownerEmail, Pageable pageable);
+
     Page<Collection> findAllByOwnerEmailOrUserEmailsContainsOrderByLastModifiedDateDesc(String ownerEmail, String userEmail, Pageable pageable);
+
     boolean existsByIdAndOwnerEmail(String id, String ownerEmail);
+
     boolean existsByIdAndOwnerEmailOrUserEmailsContains(String id, String ownerEmail, String userEmail);
 }

@@ -35,6 +35,19 @@ public class CollectionController {
 
     private final CollectionService collectionService;
 
+    @Operation(summary = "Get all collections that user have access to", responses = {
+            @ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
+    })
+    @GetMapping
+    public ResponseEntity<List<CollectionDTO>> getAllCollectionsThatHaveAccess(@CurrentUser UserPrincipal userPrincipal, Pageable pageable) {
+        log.debug("GET - get all collections that user have access to");
+        final String email = userPrincipal.getEmail();
+        final Page<Collection> page = collectionService.findAllByOwnerEmailOrUserEmail(email, pageable);
+        final HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        return ResponseEntity.ok().headers(headers).body(page.stream().map(CollectionDTO::new).toList());
+    }
+
     @Operation(summary = "Get all collections that current user owned", responses = {
             @ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
@@ -48,17 +61,15 @@ public class CollectionController {
         return ResponseEntity.ok().headers(headers).body(page.stream().map(CollectionDTO::new).toList());
     }
 
-    @Operation(summary = "Get all collections that user have access to", responses = {
+    @Operation(summary = "Get all distinct years of collections that user have access to", responses = {
             @ApiResponse(responseCode = "200", description = "OK"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content()),
+            @ApiResponse(responseCode = "403", description = "Bad Request", content = @Content())
     })
-    @GetMapping
-    public ResponseEntity<List<CollectionDTO>> getAllCollectionsThatHaveAccess(@CurrentUser UserPrincipal userPrincipal, Pageable pageable) {
-        log.debug("GET - get all collections that user have access to");
-        final String email = userPrincipal.getEmail();
-        final Page<Collection> page = collectionService.findAllByOwnerEmailOrUserEmail(email, pageable);
-        final HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
-        return ResponseEntity.ok().headers(headers).body(page.stream().map(CollectionDTO::new).toList());
+    @GetMapping("/years")
+    public ResponseEntity<List<Integer>> getAllYearOfCollection(@CurrentUser UserPrincipal userPrincipal) {
+        log.debug("GET - get all distinct years of collections that user have access to");
+        return ResponseEntity.ok(collectionService.getAllDistinctTakenYearsOfCollectionsByOwnerEmail(userPrincipal.getEmail()));
     }
 
     @Operation(summary = "Get a collection by ID", responses = {

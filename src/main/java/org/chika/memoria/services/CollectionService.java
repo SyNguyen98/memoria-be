@@ -13,6 +13,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @AllArgsConstructor
 public class CollectionService {
@@ -33,7 +35,7 @@ public class CollectionService {
     }
 
     public Page<Collection> findAllByOwnerEmail(final String ownerEmail, Pageable pageable) {
-        return collectionRepository.findAllByOwnerEmailOrderByLastModifiedDateDesc(ownerEmail, pageable);
+        return collectionRepository.findAllByOwnerEmail(ownerEmail, pageable);
     }
 
     public Page<Collection> findAllByOwnerEmailOrUserEmail(final String userEmail, Pageable pageable) {
@@ -75,5 +77,14 @@ public class CollectionService {
         } else {
             throw new BadRequestException("You don't have permission to delete this collection");
         }
+    }
+
+    @Transactional
+    public List<Integer> getAllDistinctTakenYearsOfCollectionsByOwnerEmail(final String ownerEmail) {
+        final List<String> collectionIds = collectionRepository.findAllByOwnerEmail(ownerEmail, Pageable.unpaged())
+                .stream()
+                .map(Collection::getId)
+                .toList();
+        return locationRepository.findDistinctTakenYearByCollectionIdIn(collectionIds);
     }
 }

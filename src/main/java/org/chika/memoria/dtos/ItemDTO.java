@@ -49,9 +49,9 @@ public class ItemDTO {
                 .downloadUrl(item.getDownloadUrl());
         if (!item.getThumbnails().isEmpty()) {
             switch (thumbnailSize) {
-                case "large" -> builder.thumbnailUrl(item.getThumbnails().get(0).getLarge().getUrl());
-                case "medium" -> builder.thumbnailUrl(item.getThumbnails().get(0).getMedium().getUrl());
-                case "small" -> builder.thumbnailUrl(item.getThumbnails().get(0).getSmall().getUrl());
+                case "large" -> builder.thumbnailUrl(item.getThumbnails().getFirst().getLarge().getUrl());
+                case "medium" -> builder.thumbnailUrl(item.getThumbnails().getFirst().getMedium().getUrl());
+                case "small" -> builder.thumbnailUrl(item.getThumbnails().getFirst().getSmall().getUrl());
                 default -> builder.thumbnailUrl("");
             }
         }

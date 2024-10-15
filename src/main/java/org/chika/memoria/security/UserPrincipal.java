@@ -1,6 +1,8 @@
 package org.chika.memoria.security;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import org.chika.memoria.models.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -15,9 +17,12 @@ import java.util.Map;
 @AllArgsConstructor
 public class UserPrincipal implements OAuth2User, UserDetails {
 
+    @Getter
     private String id;
+    @Getter
     private String email;
     private Collection<? extends GrantedAuthority> authorities;
+    @Setter
     private Map<String, Object> attributes;
 
     public UserPrincipal(String id, String email, Collection<? extends GrantedAuthority> authorities) {
@@ -36,14 +41,6 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         final UserPrincipal userPrincipal = UserPrincipal.create(user);
         userPrincipal.setAttributes(attributes);
         return userPrincipal;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public String getEmail() {
-        return email;
     }
 
     @Override
@@ -84,10 +81,6 @@ public class UserPrincipal implements OAuth2User, UserDetails {
     @Override
     public Map<String, Object> getAttributes() {
         return attributes;
-    }
-
-    public void setAttributes(Map<String, Object> attributes) {
-        this.attributes = attributes;
     }
 
     @Override

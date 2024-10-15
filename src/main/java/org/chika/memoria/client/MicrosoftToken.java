@@ -40,7 +40,7 @@ public class MicrosoftToken {
             this.accessToken = "";
             this.refreshToken = "";
         } else {
-            final MsToken msToken = list.get(0);
+            final MsToken msToken = list.getFirst();
             this.accessToken = msToken.getAccessToken();
             this.refreshToken = msToken.getRefreshToken();
         }

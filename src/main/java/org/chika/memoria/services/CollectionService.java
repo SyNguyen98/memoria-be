@@ -39,7 +39,7 @@ public class CollectionService {
     }
 
     public Page<Collection> findAllByOwnerEmailOrUserEmail(final String userEmail, Pageable pageable) {
-        return collectionRepository.findAllByOwnerEmailOrUserEmailsContainsOrderByLastModifiedDateDesc(userEmail, userEmail, pageable);
+        return collectionRepository.findAllByOwnerEmailOrUserEmailsContains(userEmail, userEmail, pageable);
     }
 
     @Transactional

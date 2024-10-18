@@ -39,11 +39,18 @@ public class LocationController {
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
     })
     @GetMapping
-    public ResponseEntity<List<LocationDTO>> getAllLocationsByCollectionId(@RequestParam final String collectionId, @CurrentUser UserPrincipal userPrincipal,
+    public ResponseEntity<List<LocationDTO>> getAllLocationsByCollectionId(@CurrentUser UserPrincipal userPrincipal,
+                                                                           @RequestParam(required = false) final String collectionId,
                                                                            Pageable pageable) {
-        log.debug("GET - get all locations by collection's ID");
         final String email = userPrincipal.getEmail();
-        final Page<Location> page = locationService.findAllByCollectionId(email, collectionId, pageable);
+        final Page<Location> page;
+        if (collectionId == null) {
+            log.debug("GET - get all locations that user have access");
+            page = locationService.findAllThatUserHaveAccess(email, pageable);
+        } else {
+            log.debug("GET - get all locations by collection's ID");
+            page = locationService.findAllByCollectionId(email, collectionId, pageable);
+        }
         final HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.stream().map(LocationDTO::new).toList());
     }

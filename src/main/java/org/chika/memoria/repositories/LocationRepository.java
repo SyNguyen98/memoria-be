@@ -15,6 +15,8 @@ public interface LocationRepository extends MongoRepository<Location, String> {
 
     Page<Location> findAllByCollectionIdOrderByTakenYearDescTakenMonthDescTakenDayDescTakenTimeDesc(String collectionId, Pageable pageable);
 
+    Page<Location> findAllByCollectionIdInOrderByTakenYearDescTakenMonthDescTakenDayDescTakenTimeDesc(List<String> collectionIds, Pageable pageable);
+
     Optional<Location> findByDriveItemId(String driveItemId);
 
     void deleteAllByCollectionId(String collectionId);

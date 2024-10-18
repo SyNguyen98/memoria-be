@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +31,15 @@ public class LocationService {
             return locationRepository.findAllByCollectionIdOrderByTakenYearDescTakenMonthDescTakenDayDescTakenTimeDesc(collectionId, pageable);
         }
         throw new BadRequestException("You are not owner of this collection");
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Location> findAllThatUserHaveAccess(final String ownerEmail, Pageable pageable) {
+        final List<String> collectionIds = collectionRepository.findAllByOwnerEmailOrUserEmailsContainsOrderByLastModifiedDateDesc(ownerEmail, ownerEmail, Pageable.unpaged())
+                .stream()
+                .map(Collection::getId)
+                .toList();
+        return locationRepository.findAllByCollectionIdInOrderByTakenYearDescTakenMonthDescTakenDayDescTakenTimeDesc(collectionIds, pageable);
     }
 
     @Transactional(readOnly = true)

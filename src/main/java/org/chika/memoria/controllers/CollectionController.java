@@ -72,6 +72,17 @@ public class CollectionController {
         return ResponseEntity.ok(collectionService.getAllDistinctTakenYearsOfCollectionsByOwnerEmail(userPrincipal.getEmail()));
     }
 
+    @Operation(summary = "Get all distinct user emails of collections that user have access to", responses = {
+            @ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content()),
+            @ApiResponse(responseCode = "403", description = "Bad Request", content = @Content())
+    })
+    @GetMapping("/user-emails")
+    public ResponseEntity<List<String>> getAllUserEmailsOfCollectionByOwnerEmail(@CurrentUser UserPrincipal userPrincipal) {
+        log.debug("GET - get all distinct user emails of collections that user have access to");
+        return ResponseEntity.ok(collectionService.getAllDistinctUserEmailsByOwnerEmail(userPrincipal.getEmail()));
+    }
+
     @Operation(summary = "Get a collection by ID", responses = {
             @ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content()),

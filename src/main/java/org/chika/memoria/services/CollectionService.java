@@ -87,4 +87,9 @@ public class CollectionService {
                 .toList();
         return locationRepository.findDistinctTakenYearByCollectionIdIn(collectionIds);
     }
+
+    @Transactional
+    public List<String> getAllDistinctUserEmailsByOwnerEmail(final String ownerEmail) {
+        return collectionRepository.findDistinctUserEmailsByOwnerEmail(ownerEmail);
+    }
 }

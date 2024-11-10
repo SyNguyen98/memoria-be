@@ -86,6 +86,7 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(corsOrigins);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
+        configuration.setExposedHeaders(List.of("X-Total-Count"));
         configuration.setMaxAge(Duration.ofSeconds(4000));
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

@@ -40,9 +40,16 @@ public class CollectionController {
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
     })
     @GetMapping
-    public ResponseEntity<List<CollectionDTO>> getAllCollectionsThatHaveAccess(@CurrentUser UserPrincipal userPrincipal, Pageable pageable) {
+    public ResponseEntity<List<CollectionDTO>> getAllCollectionsThatHaveAccess(@CurrentUser UserPrincipal userPrincipal,
+                                                                               @RequestParam(required = false, defaultValue = "false") boolean unpaged,
+                                                                               Pageable pageable) {
         log.debug("GET - get all collections that user have access to");
         final String email = userPrincipal.getEmail();
+        if (unpaged) {
+            final List<CollectionDTO> collectionDTOS = collectionService.findAllByOwnerEmail(email)
+                    .stream().map(CollectionDTO::new).toList();
+            return ResponseEntity.ok(collectionDTOS);
+        }
         final Page<Collection> page = collectionService.findAllByOwnerEmailOrUserEmail(email, pageable);
         final HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.stream().map(CollectionDTO::new).toList());

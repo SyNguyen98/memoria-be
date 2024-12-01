@@ -12,6 +12,8 @@ import java.util.List;
 @Repository
 public interface CollectionRepository extends MongoRepository<Collection, String> {
 
+    List<Collection> findAllByOwnerEmailOrderByLastModifiedDate(String ownerEmail);
+
     Page<Collection> findAllByOwnerEmail(String ownerEmail, Pageable pageable);
 
     Page<Collection> findAllByOwnerEmailOrUserEmailsContains(String ownerEmail, String userEmail, Pageable pageable);

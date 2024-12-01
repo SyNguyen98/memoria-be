@@ -34,6 +34,10 @@ public class CollectionService {
         throw new BadRequestException("You are not owner of this collection");
     }
 
+    public List<Collection> findAllByOwnerEmail(final String ownerEmail) {
+        return collectionRepository.findAllByOwnerEmailOrderByLastModifiedDate(ownerEmail);
+    }
+
     public Page<Collection> findAllByOwnerEmail(final String ownerEmail, Pageable pageable) {
         return collectionRepository.findAllByOwnerEmail(ownerEmail, pageable);
     }

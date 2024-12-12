@@ -21,19 +21,6 @@ spring:
               - email
               - profile
 
-springdoc:
-  api-docs:
-    path: ${API_DOCS_URL:/api-docs}
-    enabled: ${API_DOCS_ENABLED:true}
-    resolve-schema-properties: true
-  swagger-ui:
-    csrf:
-      enabled: true
-    disable-swagger-default-url: true
-    url: ${API_DOCS_URL:/api-docs}
-    path: ${API_DOCS_URL:/api-docs}/swagger
-    use-root-path: true
-
 memoria:
   microsoft:
     clientId: clientId

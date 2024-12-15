@@ -35,7 +35,7 @@ public class CollectionService {
     }
 
     public List<Collection> findAllByOwnerEmail(final String ownerEmail) {
-        return collectionRepository.findAllByOwnerEmailOrderByLastModifiedDate(ownerEmail);
+        return collectionRepository.findAllByOwnerEmailOrderByLastModifiedDateDesc(ownerEmail);
     }
 
     public Page<Collection> findAllByOwnerEmail(final String ownerEmail, Pageable pageable) {

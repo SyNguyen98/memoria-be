@@ -12,7 +12,7 @@ import java.util.List;
 @Repository
 public interface CollectionRepository extends MongoRepository<Collection, String> {
 
-    List<Collection> findAllByOwnerEmailOrderByLastModifiedDate(String ownerEmail);
+    List<Collection> findAllByOwnerEmailOrderByLastModifiedDateDesc(String ownerEmail);
 
     Page<Collection> findAllByOwnerEmail(String ownerEmail, Pageable pageable);
 

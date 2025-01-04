@@ -68,6 +68,7 @@ public class CollectionService {
         final Collection collection = collectionRepository.findById(collectionDTO.getId())
                 .orElseThrow(() -> new ResourceNotFoundException(Collection.class.getName(), "id", collectionDTO.getId()));
         if (collection.getOwnerEmail().equals(ownerEmail)) {
+            microsoftGraphClient.updateDriveItem(collection.getDriveItemId(), collectionDTO.getName());
             return collectionRepository.save(collectionDTO.update(collection));
         }
         throw new BadRequestException("You don't have permission to update this collection");

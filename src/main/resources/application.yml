@@ -20,6 +20,10 @@ spring:
             scope:
               - email
               - profile
+  cloud:
+    openfeign:
+      okhttp:
+        enabled: true
 
 memoria:
   microsoft:

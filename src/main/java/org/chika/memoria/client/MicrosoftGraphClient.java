@@ -66,6 +66,20 @@ public class MicrosoftGraphClient {
         return Objects.requireNonNull(response.getBody());
     }
 
+    public void updateDriveItem(final String itemId, final String newName) {
+        Map<String, String> body = Map.of("name", newName);
+        try {
+            iMicrosoftGraphClient.updateDriveItem(itemId, body);
+        } catch (FeignException exception) {
+            if (exception.status() == HttpStatus.UNAUTHORIZED.value()) {
+                microsoftToken.refreshAccessToken();
+                iMicrosoftGraphClient.updateDriveItem(itemId, body);
+            } else {
+                throw exception;
+            }
+        }
+    }
+
     public Item uploadFile(final String parentId, final String fileName, final byte[] file) {
         ResponseEntity<Item> response;
         try {

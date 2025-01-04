@@ -3,7 +3,7 @@ package org.chika.memoria.dtos;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import org.chika.memoria.models.Collection;
-import org.chika.memoria.models.Tag;
+import org.chika.memoria.constants.Tag;
 
 import java.time.Instant;
 import java.util.List;

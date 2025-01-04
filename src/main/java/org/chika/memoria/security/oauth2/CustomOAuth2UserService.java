@@ -2,7 +2,7 @@ package org.chika.memoria.security.oauth2;
 
 import lombok.RequiredArgsConstructor;
 import org.chika.memoria.exceptions.OAuth2AuthenticationProcessingException;
-import org.chika.memoria.models.AuthProvider;
+import org.chika.memoria.constants.AuthProvider;
 import org.chika.memoria.models.User;
 import org.chika.memoria.repositories.UserRepository;
 import org.chika.memoria.security.UserPrincipal;

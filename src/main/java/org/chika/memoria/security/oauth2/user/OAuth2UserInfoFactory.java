@@ -1,7 +1,7 @@
 package org.chika.memoria.security.oauth2.user;
 
 import org.chika.memoria.exceptions.OAuth2AuthenticationProcessingException;
-import org.chika.memoria.models.AuthProvider;
+import org.chika.memoria.constants.AuthProvider;
 
 import java.util.Map;
 

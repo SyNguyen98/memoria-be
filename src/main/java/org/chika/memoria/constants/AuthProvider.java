@@ -1,4 +1,4 @@
-package org.chika.memoria.models;
+package org.chika.memoria.constants;
 
 public enum AuthProvider {
     LOCAL,

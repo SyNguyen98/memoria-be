@@ -2,6 +2,7 @@ package org.chika.memoria.configs;
 
 import feign.Logger;
 import feign.RequestInterceptor;
+import lombok.RequiredArgsConstructor;
 import org.chika.memoria.client.MicrosoftToken;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.cloud.openfeign.FeignClientsConfiguration;
@@ -13,13 +14,10 @@ import org.springframework.http.HttpHeaders;
 @Configuration
 @EnableFeignClients(basePackages = "org.chika.memoria")
 @Import(FeignClientsConfiguration.class)
-public class FeignConfiguration {
+@RequiredArgsConstructor
+public class FeignConfig {
 
     private final MicrosoftToken microsoftToken;
-
-    public FeignConfiguration(MicrosoftToken microsoftToken) {
-        this.microsoftToken = microsoftToken;
-    }
 
     @Bean
     Logger.Level feignLoggerLevel() {

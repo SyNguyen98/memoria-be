@@ -21,6 +21,9 @@ public interface IMicrosoftGraphClient {
     @PostMapping("/drive/items/{itemId}/children")
     ResponseEntity<Item> createFolderInDriveItem(@PathVariable String itemId, @RequestBody Map<String, Object> body);
 
+    @PatchMapping("/drive/items/{itemId}")
+    ResponseEntity<Item> updateDriveItem(@PathVariable String itemId, @RequestBody Map<String, String> body);
+
     @PutMapping("/drive/items/{parentId}:/{fileName}:/content")
     @Headers("Content-Type: image/jpeg")
     ResponseEntity<Item> uploadFile(@PathVariable String parentId, @PathVariable String fileName,

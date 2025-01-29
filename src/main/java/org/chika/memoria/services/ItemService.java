@@ -23,11 +23,11 @@ public class ItemService {
     private final MicrosoftGraphClient microsoftGraphClient;
 
     @Transactional(readOnly = true)
-    public List<ItemDTO> getAllItemsByDriveItemId(final String userEmail, final String driveItemId, final String thumbnailSize) {
-        final Location location = locationRepository.findByDriveItemId(driveItemId)
-                .orElseThrow(() -> new ResourceNotFoundException("Drive Item", "id", driveItemId));
+    public List<ItemDTO> getAllItemsByLocationId(final String userEmail, final String locationId, final String thumbnailSize) {
+        final Location location = locationRepository.findById(locationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Location", "id", locationId));
         if (collectionRepository.existsByIdAndOwnerEmailOrUserEmailsContains(location.getCollectionId(), userEmail, userEmail)) {
-            return microsoftGraphClient.getAllChildrenByItemId(driveItemId).stream()
+            return microsoftGraphClient.getAllChildrenByItemId(location.getDriveItemId()).stream()
                     .map(item -> thumbnailSize == null ? ItemDTO.convert(item) : ItemDTO.convert(item, thumbnailSize))
                     .toList();
         }

@@ -16,7 +16,6 @@ public class LocationDTO {
     private Coordinate coordinate;
     private String place;
     private String description;
-    private String driveItemId;
 
     public LocationDTO(final Location location) {
         this.id = location.getId();
@@ -27,6 +26,5 @@ public class LocationDTO {
         this.coordinate = location.getCoordinate();
         this.place = location.getPlace();
         this.description = location.getDescription();
-        this.driveItemId = location.getDriveItemId();
     }
 }

@@ -2,6 +2,7 @@ package org.chika.memoria.client;
 
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.chika.memoria.dtos.AccessTokenDTO;
 import org.chika.memoria.models.MsToken;
@@ -17,21 +18,16 @@ import java.util.List;
 
 @Component
 @Getter
+@RequiredArgsConstructor
 @Slf4j
 public class MicrosoftToken {
 
     public static final String MICROSOFT_TOKEN_URL = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token";
     private final MemoriaProperties memoriaProperties;
     private final MsTokenRepository msTokenRepository;
-    private String accessToken;
-    private String refreshToken;
 
-    public MicrosoftToken(MemoriaProperties memoriaProperties, MsTokenRepository msTokenRepository) {
-        this.memoriaProperties = memoriaProperties;
-        this.msTokenRepository = msTokenRepository;
-        this.accessToken = "";
-        this.refreshToken = "";
-    }
+    private String accessToken = "";
+    private String refreshToken = "";
 
     @PostConstruct
     public void getToken() {

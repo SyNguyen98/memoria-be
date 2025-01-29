@@ -25,17 +25,17 @@ public class ItemController {
 
     private final ItemService itemService;
 
-    @Operation(summary = "Get all items by driveItemId", responses = {
+    @Operation(summary = "Get all items by locationId", responses = {
             @ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content()),
             @ApiResponse(responseCode = "403", description = "Bad Request", content = @Content())
     })
     @GetMapping
-    public ResponseEntity<List<ItemDTO>> getAllItemsByDriveItemId(@CurrentUser UserPrincipal userPrincipal,
-        @RequestParam final String driveItemId,
-        @Parameter(description = "value is \"large\", \"medium\" or \"small\"") @RequestParam(required = false) final String thumbnailSize) {
-        log.debug("GET - get all items by driveItemId {}", driveItemId);
-        return ResponseEntity.ok(itemService.getAllItemsByDriveItemId(userPrincipal.getEmail(), driveItemId, thumbnailSize));
+    public ResponseEntity<List<ItemDTO>> getAllItemsByLocationId(@CurrentUser UserPrincipal userPrincipal,
+                                                                 @RequestParam final String locationId,
+                                                                 @Parameter(description = "value is \"large\", \"medium\" or \"small\"") @RequestParam(required = false) final String thumbnailSize) {
+        log.debug("GET - get all items by locationId {}", locationId);
+        return ResponseEntity.ok(itemService.getAllItemsByLocationId(userPrincipal.getEmail(), locationId, thumbnailSize));
     }
 
     @Operation(summary = "Get an item by ID", responses = {

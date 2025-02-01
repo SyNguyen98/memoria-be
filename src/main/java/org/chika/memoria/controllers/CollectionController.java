@@ -101,6 +101,17 @@ public class CollectionController {
         return ResponseEntity.ok(new CollectionDTO(collectionService.findById(userPrincipal.getEmail(), id)));
     }
 
+    @Operation(summary = "Get a collection by location's ID", responses = {
+            @ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content()),
+            @ApiResponse(responseCode = "403", description = "Bad Request", content = @Content())
+    })
+    @GetMapping("/locations/{locationId}")
+    public ResponseEntity<CollectionDTO> getCollectionByLocationId(@CurrentUser UserPrincipal userPrincipal, @PathVariable final String locationId) {
+        log.debug("GET - get a collection by location id");
+        return ResponseEntity.ok(new CollectionDTO(collectionService.findByLocationId(userPrincipal.getEmail(), locationId)));
+    }
+
     @Operation(summary = "Create a collection", responses = {
             @ApiResponse(responseCode = "201", description = "Created"),
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())

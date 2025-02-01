@@ -34,6 +34,12 @@ public class CollectionService {
         throw new BadRequestException("You are not owner of this collection");
     }
 
+    public Collection findByLocationId(final String userEmail, final String locationId) {
+        final var location = locationRepository.findById(locationId)
+                .orElseThrow(() -> new ResourceNotFoundException(Collection.class.getName(), "id", locationId));
+        return findById(userEmail, location.getCollectionId());
+    }
+
     public List<Collection> findAllByOwnerEmail(final String ownerEmail) {
         return collectionRepository.findAllByOwnerEmailOrderByLastModifiedDateDesc(ownerEmail);
     }

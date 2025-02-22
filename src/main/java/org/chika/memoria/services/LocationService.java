@@ -1,6 +1,7 @@
 package org.chika.memoria.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.chika.memoria.client.MicrosoftGraphClient;
 import org.chika.memoria.dtos.CreateUpdateLocationDTO;
 import org.chika.memoria.exceptions.BadRequestException;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class LocationService {
@@ -26,20 +28,33 @@ public class LocationService {
     private final MicrosoftGraphClient microsoftGraphClient;
 
     @Transactional(readOnly = true)
-    public Page<Location> findAllByCollectionId(final String ownerEmail, final String collectionId, Pageable pageable) {
+    public List<Location> findAllThatUserHaveAccessByParams(final String collectionId, final Integer year, final String ownerEmail) {
+        if (collectionId == null) {
+            final List<String> collectionIds = collectionRepository.findCollectionIdsByOwnerEmailOrUserEmailsContains(ownerEmail, ownerEmail);
+            if (year == null) {
+                return locationRepository.findAllByCollectionIdIn(collectionIds);
+            }
+            return locationRepository.findAllByTakenYearAndCollectionIdIn(year, collectionIds);
+        }
         if (collectionRepository.existsByIdAndOwnerEmailOrUserEmailsContains(collectionId, ownerEmail, ownerEmail)) {
-            return locationRepository.findAllByCollectionIdOrderByTakenYearDescTakenMonthDescTakenDayDescTakenTimeDesc(collectionId, pageable);
+            if (year == null) {
+                return locationRepository.findAllByCollectionId(collectionId);
+            }
+            return locationRepository.findAllByTakenYearAndCollectionId(year, collectionId);
         }
         throw new BadRequestException("You are not owner of this collection");
     }
 
     @Transactional(readOnly = true)
-    public Page<Location> findAllThatUserHaveAccess(final String ownerEmail, Pageable pageable) {
-        final List<String> collectionIds = collectionRepository.findAllByOwnerEmailOrUserEmailsContainsOrderByLastModifiedDateDesc(ownerEmail, ownerEmail, Pageable.unpaged())
-                .stream()
-                .map(Collection::getId)
-                .toList();
-        return locationRepository.findAllByCollectionIdInOrderByTakenYearDescTakenMonthDescTakenDayDescTakenTimeDesc(collectionIds, pageable);
+    public Page<Location> findAllThatUserHaveAccessByParams(final String collectionId, final String ownerEmail, Pageable pageable) {
+        if (collectionId == null) {
+            final List<String> collectionIds = collectionRepository.findCollectionIdsByOwnerEmailOrUserEmailsContains(ownerEmail, ownerEmail);
+            return locationRepository.findAllByCollectionIdIn(collectionIds, pageable);
+        }
+        if (collectionRepository.existsByIdAndOwnerEmailOrUserEmailsContains(collectionId, ownerEmail, ownerEmail)) {
+            return locationRepository.findAllByCollectionId(collectionId, pageable);
+        }
+        throw new BadRequestException("You are not owner of this collection");
     }
 
     @Transactional(readOnly = true)

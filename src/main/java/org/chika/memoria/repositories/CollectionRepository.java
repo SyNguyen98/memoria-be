@@ -18,11 +18,15 @@ public interface CollectionRepository extends MongoRepository<Collection, String
 
     Page<Collection> findAllByOwnerEmailOrUserEmailsContains(String ownerEmail, String userEmail, Pageable pageable);
 
-    Page<Collection> findAllByOwnerEmailOrUserEmailsContainsOrderByLastModifiedDateDesc(String ownerEmail, String userEmail, Pageable pageable);
-
     boolean existsByIdAndOwnerEmail(String id, String ownerEmail);
 
     boolean existsByIdAndOwnerEmailOrUserEmailsContains(String id, String ownerEmail, String userEmail);
+
+    @Aggregation(pipeline = {
+            "{ '$match': { '$or': [ { 'ownerEmail': ?0 }, { 'userEmails': ?1 } ] } }",
+            "{ '$project': { 'id': 1 } }"
+    })
+    List<String> findCollectionIdsByOwnerEmailOrUserEmailsContains(String ownerEmail, String userEmail);
 
     @Aggregation(pipeline = {
             "{ '$match': { 'ownerEmail': ?0 } }",

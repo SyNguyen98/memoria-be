@@ -34,23 +34,31 @@ public class LocationController {
 
     private final LocationService locationService;
 
-    @Operation(summary = "Get all locations by collection's ID", responses = {
+    @Operation(summary = "Get all locations by params that user have access", responses = {
+            @ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
+    })
+    @GetMapping("/all")
+    public ResponseEntity<List<LocationDTO>> getAllLocationsUserHaveAccessByParams(@CurrentUser UserPrincipal userPrincipal,
+                                                                                   @RequestParam(required = false) final String collectionId,
+                                                                                   @RequestParam(required = false) final Integer year) {
+        log.debug("GET - get all locations that user have access by params");
+        final String email = userPrincipal.getEmail();
+        final List<Location> list = locationService.findAllThatUserHaveAccessByParams(collectionId, year, email);
+        return ResponseEntity.ok(list.stream().map(LocationDTO::new).toList());
+    }
+
+    @Operation(summary = "Get all locations (paging) by params that user have access", responses = {
             @ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
     })
     @GetMapping
-    public ResponseEntity<List<LocationDTO>> getAllLocationsByCollectionId(@CurrentUser UserPrincipal userPrincipal,
-                                                                           @RequestParam(required = false) final String collectionId,
-                                                                           Pageable pageable) {
+    public ResponseEntity<List<LocationDTO>> getAllLocationsUserHaveAccessByParams(@CurrentUser UserPrincipal userPrincipal,
+                                                                                   @RequestParam(required = false) final String collectionId,
+                                                                                   Pageable pageable) {
+        log.debug("GET - get all locations (paging) that user have access by params");
         final String email = userPrincipal.getEmail();
-        final Page<Location> page;
-        if (collectionId == null) {
-            log.debug("GET - get all locations that user have access");
-            page = locationService.findAllThatUserHaveAccess(email, pageable);
-        } else {
-            log.debug("GET - get all locations by collection's ID");
-            page = locationService.findAllByCollectionId(email, collectionId, pageable);
-        }
+        final Page<Location> page = locationService.findAllThatUserHaveAccessByParams(collectionId, email, pageable);
         final HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.stream().map(LocationDTO::new).toList());
     }

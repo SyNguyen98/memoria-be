@@ -7,17 +7,23 @@ import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface LocationRepository extends MongoRepository<Location, String> {
 
-    Page<Location> findAllByCollectionIdOrderByTakenYearDescTakenMonthDescTakenDayDescTakenTimeDesc(String collectionId, Pageable pageable);
+    List<Location> findAllByCollectionId(String collectionId);
 
-    Page<Location> findAllByCollectionIdInOrderByTakenYearDescTakenMonthDescTakenDayDescTakenTimeDesc(List<String> collectionIds, Pageable pageable);
+    List<Location> findAllByCollectionIdIn(Collection<String> collectionIds);
 
-    Optional<Location> findByDriveItemId(String driveItemId);
+    List<Location> findAllByTakenYearAndCollectionId(int takenYear, String collectionId);
+
+    List<Location> findAllByTakenYearAndCollectionIdIn(int takenYear, Collection<String> collectionIds);
+
+    Page<Location> findAllByCollectionId(String collectionId, Pageable pageable);
+
+    Page<Location> findAllByCollectionIdIn(Collection<String> collectionIds, Pageable pageable);
 
     void deleteAllByCollectionId(String collectionId);
 

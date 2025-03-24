@@ -13,11 +13,10 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 @SpringBootApplication
 @EnableMongoRepositories
 @SecurityScheme(type = SecuritySchemeType.HTTP, name = "bearer-jwt", description = "Bearer Token", bearerFormat = "JWT", scheme = "bearer", in = SecuritySchemeIn.HEADER, paramName = "Authorization")
-@OpenAPIDefinition(info = @Info(title = "MEMORIA API", version = "0-SNAPSHOT"), security = @SecurityRequirement(name = "bearer-jwt"))
+@OpenAPIDefinition(info = @Info(title = "MEMORIA API", version = "1.0.0"), security = @SecurityRequirement(name = "bearer-jwt"))
 public class MemoriaApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(MemoriaApplication.class, args);
 	}
-
 }

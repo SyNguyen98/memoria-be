@@ -10,7 +10,7 @@
     </parent>
     <groupId>org.chika</groupId>
     <artifactId>memoria</artifactId>
-    <version>0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <name>memoria</name>
     <description>memoria</description>
     <properties>

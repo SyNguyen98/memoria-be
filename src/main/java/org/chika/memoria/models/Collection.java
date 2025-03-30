@@ -41,4 +41,7 @@ public class Collection {
     @Field("driveItemId")
     @Indexed(unique = true)
     private String driveItemId;
+
+    @Field("locations")
+    private List<CollectionLocation> locations;
 }

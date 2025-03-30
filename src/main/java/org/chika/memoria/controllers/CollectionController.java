@@ -12,6 +12,7 @@ import org.chika.memoria.dtos.CreateUpdateCollectionDTO;
 import org.chika.memoria.models.Collection;
 import org.chika.memoria.security.CurrentUser;
 import org.chika.memoria.security.UserPrincipal;
+import org.chika.memoria.services.CollectionLocationService;
 import org.chika.memoria.services.CollectionService;
 import org.chika.memoria.utils.PaginationUtil;
 import org.springframework.data.domain.Page;
@@ -34,6 +35,7 @@ import java.util.List;
 public class CollectionController {
 
     private final CollectionService collectionService;
+    private final CollectionLocationService collectionLocationService;
 
     @Operation(summary = "Get all collections that user have access to", responses = {
             @ApiResponse(responseCode = "200", description = "OK"),
@@ -135,6 +137,18 @@ public class CollectionController {
                                                           @RequestBody @Valid final CreateUpdateCollectionDTO collectionDTO) {
         log.debug("PUT - update a collection");
         return ResponseEntity.ok(new CollectionDTO(collectionService.update(userPrincipal.getEmail(), collectionDTO)));
+    }
+
+    @Operation(summary = "Update collection's locations", responses = {
+            @ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content()),
+            @ApiResponse(responseCode = "403", description = "Bad Request", content = @Content())
+    })
+    @PutMapping("/locations")
+    public ResponseEntity<Void> updateCollection() {
+        log.debug("PUT - update collection's locations");
+        collectionLocationService.updateCollectionLocations();
+        return ResponseEntity.ok().build();
     }
 
     @Operation(summary = "Delete a collection by ID", responses = {

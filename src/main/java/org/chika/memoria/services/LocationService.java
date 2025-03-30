@@ -26,6 +26,7 @@ public class LocationService {
     private final LocationRepository locationRepository;
     private final CollectionRepository collectionRepository;
     private final MicrosoftGraphClient microsoftGraphClient;
+    private final CollectionLocationService collectionLocationService;
 
     @Transactional(readOnly = true)
     public List<Location> findAllThatUserHaveAccessByParams(final String collectionId, final Integer year, final String ownerEmail) {
@@ -69,14 +70,18 @@ public class LocationService {
 
     @Transactional
     public Location create(final String ownerEmail, final CreateUpdateLocationDTO locationDTO) {
-        final Collection collection = getCollectionById(locationDTO.getCollectionId());
+        Collection collection = getCollectionById(locationDTO.getCollectionId());
+
+        // Check Ownership
         if (collection.getOwnerEmail().equals(ownerEmail)) {
             final Location location = locationDTO.convert();
 
+            // Create Folder in Drive
             final String driveItemId = microsoftGraphClient.createFolderInDriveItem(collection.getDriveItemId(), locationDTO.getPlace()).getId();
             location.setDriveItemId(driveItemId);
 
-            collection.setLastModifiedDate(Instant.now());
+            collection = collectionLocationService.updateCollectionLocation(collection, location);
+
             collectionRepository.save(collection);
 
             return locationRepository.save(location);

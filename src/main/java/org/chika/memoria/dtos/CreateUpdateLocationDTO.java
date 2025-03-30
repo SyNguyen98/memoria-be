@@ -23,8 +23,11 @@ public class CreateUpdateLocationDTO {
     private String collectionId;
 
     public Location convert() {
-        return Location.builder().takenYear(this.takenYear).takenMonth(this.takenMonth)
-                .takenDay(this.takenDay).takenTime(this.takenTime)
+        return Location.builder()
+                .takenYear(this.takenYear)
+                .takenMonth(this.takenMonth)
+                .takenDay(this.takenDay)
+                .takenTime(this.takenTime)
                 .coordinate(this.coordinate)
                 .place(this.place)
                 .description(this.description)

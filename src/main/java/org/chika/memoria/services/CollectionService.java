@@ -2,6 +2,7 @@ package org.chika.memoria.services;
 
 import lombok.AllArgsConstructor;
 import org.chika.memoria.client.MicrosoftGraphClient;
+import org.chika.memoria.constants.Tag;
 import org.chika.memoria.dtos.CreateUpdateCollectionDTO;
 import org.chika.memoria.exceptions.BadRequestException;
 import org.chika.memoria.exceptions.ResourceNotFoundException;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -40,16 +42,20 @@ public class CollectionService {
         return findById(userEmail, location.getCollectionId());
     }
 
-    public List<Collection> findAllByOwnerEmail(final String ownerEmail) {
-        return collectionRepository.findAllByOwnerEmailOrderByLastModifiedDateDesc(ownerEmail);
-    }
-
     public Page<Collection> findAllByOwnerEmail(final String ownerEmail, Pageable pageable) {
         return collectionRepository.findAllByOwnerEmail(ownerEmail, pageable);
     }
 
-    public Page<Collection> findAllByOwnerEmailOrUserEmail(final String userEmail, Pageable pageable) {
-        return collectionRepository.findAllByOwnerEmailOrUserEmailsContains(userEmail, userEmail, pageable);
+    public List<Collection> findAllHaveAccessByParams(final String userEmail) {
+        return collectionRepository.findAllByOwnerEmailOrUserEmailsContains(userEmail, userEmail);
+    }
+
+    public Page<Collection> findAllHaveAccessByParams(final String userEmail, final String tag, Pageable pageable) {
+        if (tag == null || tag.isBlank()) {
+            return collectionRepository.findAllByOwnerEmailOrUserEmailsContains(userEmail, userEmail, pageable);
+        }
+        List<Tag> tags = Arrays.stream(tag.split(",")).map(Tag::valueOf).toList();
+        return collectionRepository.findAllByTagsInAndOwnerEmailOrUserEmailsContains(tags, userEmail, userEmail, pageable);
     }
 
     @Transactional
@@ -91,8 +97,8 @@ public class CollectionService {
     }
 
     @Transactional
-    public List<Integer> getAllDistinctTakenYearsOfCollectionsByOwnerEmail(final String ownerEmail) {
-        final List<String> collectionIds = collectionRepository.findAllByOwnerEmail(ownerEmail, Pageable.unpaged())
+    public List<Integer> getAllDistinctTakenYearsOfCollectionsHaveAccess(final String ownerEmail) {
+        final List<String> collectionIds = collectionRepository.findAllByOwnerEmailOrUserEmailsContains(ownerEmail, ownerEmail)
                 .stream()
                 .map(Collection::getId)
                 .toList();

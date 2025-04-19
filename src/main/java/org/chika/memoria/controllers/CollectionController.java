@@ -43,16 +43,17 @@ public class CollectionController {
     })
     @GetMapping
     public ResponseEntity<List<CollectionDTO>> getAllCollectionsThatHaveAccess(@CurrentUser UserPrincipal userPrincipal,
+                                                                               @RequestParam(required = false) String tags,
                                                                                @RequestParam(required = false, defaultValue = "false") boolean unpaged,
                                                                                Pageable pageable) {
         log.debug("GET - get all collections that user have access to");
         final String email = userPrincipal.getEmail();
         if (unpaged) {
-            final List<CollectionDTO> collectionDTOS = collectionService.findAllByOwnerEmail(email)
+            final List<CollectionDTO> collectionDTOS = collectionService.findAllHaveAccessByParams(email)
                     .stream().map(CollectionDTO::new).toList();
             return ResponseEntity.ok(collectionDTOS);
         }
-        final Page<Collection> page = collectionService.findAllByOwnerEmailOrUserEmail(email, pageable);
+        final Page<Collection> page = collectionService.findAllHaveAccessByParams(email, tags, pageable);
         final HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.stream().map(CollectionDTO::new).toList());
     }
@@ -78,7 +79,7 @@ public class CollectionController {
     @GetMapping("/years")
     public ResponseEntity<List<Integer>> getAllYearOfCollection(@CurrentUser UserPrincipal userPrincipal) {
         log.debug("GET - get all distinct years of collections that user have access to");
-        return ResponseEntity.ok(collectionService.getAllDistinctTakenYearsOfCollectionsByOwnerEmail(userPrincipal.getEmail()));
+        return ResponseEntity.ok(collectionService.getAllDistinctTakenYearsOfCollectionsHaveAccess(userPrincipal.getEmail()));
     }
 
     @Operation(summary = "Get all distinct user emails of collections that user have access to", responses = {

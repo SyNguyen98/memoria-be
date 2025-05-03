@@ -7,6 +7,7 @@ import org.chika.memoria.dtos.CreateUpdateCollectionDTO;
 import org.chika.memoria.exceptions.BadRequestException;
 import org.chika.memoria.exceptions.ResourceNotFoundException;
 import org.chika.memoria.models.Collection;
+import org.chika.memoria.models.Location;
 import org.chika.memoria.repositories.CollectionRepository;
 import org.chika.memoria.repositories.LocationRepository;
 import org.springframework.data.domain.Page;
@@ -38,7 +39,7 @@ public class CollectionService {
 
     public Collection findByLocationId(final String userEmail, final String locationId) {
         final var location = locationRepository.findById(locationId)
-                .orElseThrow(() -> new ResourceNotFoundException(Collection.class.getName(), "id", locationId));
+                .orElseThrow(() -> new ResourceNotFoundException(Location.class.getName(), "id", locationId));
         return findById(userEmail, location.getCollectionId());
     }
 

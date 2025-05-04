@@ -8,6 +8,7 @@ import org.chika.memoria.models.CollectionLocation;
 import org.chika.memoria.models.Coordinate;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -32,7 +33,7 @@ public class CollectionDTO {
         this.ownerEmail = collection.getOwnerEmail();
         this.userEmails = collection.getUserEmails();
         this.lastModifiedDate = collection.getLastModifiedDate();
-        this.locations = collection.getLocations().stream()
+        this.locations = collection.getLocations() == null ? new ArrayList<>() : collection.getLocations().stream()
                 .map(CollectionLocationDTO::new)
                 .toList();
     }

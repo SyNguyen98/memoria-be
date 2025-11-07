@@ -29,7 +29,7 @@ public class TokenProvider {
     public TokenProvider(final ApplicationProperties applicationProperties) {
         final RSAKey privateJwtKey = applicationProperties.getSecurity().getPrivateJwtKey();
         final JWKSet jwkSet = new JWKSet(privateJwtKey);
-        encoder = new NimbusJwtEncoder(new ImmutableJWKSet<>(jwkSet));
+        this.encoder = new NimbusJwtEncoder(new ImmutableJWKSet<>(jwkSet));
         this.applicationProperties = applicationProperties;
     }
 

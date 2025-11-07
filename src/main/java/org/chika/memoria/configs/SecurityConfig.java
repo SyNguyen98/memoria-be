@@ -1,9 +1,10 @@
 package org.chika.memoria.configs;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.chika.memoria.properties.ApplicationProperties;
 import org.chika.memoria.security.CustomUserDetailsService;
-import org.chika.memoria.security.RestAuthenticationEntryPoint;
 import org.chika.memoria.security.TokenAuthenticationFilter;
 import org.chika.memoria.security.oauth2.CustomOAuth2UserService;
 import org.chika.memoria.security.oauth2.HttpCookieOAuth2AuthorizationRequestRepository;
@@ -18,14 +19,17 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
 
@@ -91,5 +95,14 @@ public class SecurityConfig {
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    private static class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
+
+        @Override
+        public void commence(final HttpServletRequest httpServletRequest, final HttpServletResponse httpServletResponse,
+                             final AuthenticationException e) throws IOException {
+            httpServletResponse.sendError(httpServletResponse.getStatus(), e.getMessage());
+        }
     }
 }

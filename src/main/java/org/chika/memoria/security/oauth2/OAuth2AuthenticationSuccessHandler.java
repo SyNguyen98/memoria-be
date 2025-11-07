@@ -5,8 +5,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.chika.memoria.properties.ApplicationProperties;
 import org.chika.memoria.exceptions.BadRequestException;
+import org.chika.memoria.properties.ApplicationProperties;
 import org.chika.memoria.security.TokenProvider;
 import org.chika.memoria.utils.CookieUtils;
 import org.springframework.security.core.Authentication;
@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Optional;
 
-import static org.chika.memoria.security.oauth2.HttpCookieOAuth2AuthorizationRequestRepository.REDIRECT_URI_PARAM_COOKIE_NAME;
+import static org.chika.memoria.security.oauth2.HttpCookieOAuth2AuthorizationRequestRepository.REDIRECT_URI_COOKIE;
 
 @Component
 @Slf4j
@@ -30,12 +30,12 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     private final HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
 
     @Override
-    public void onAuthenticationSuccess(final HttpServletRequest request, final HttpServletResponse response,
-                                        final Authentication authentication) throws IOException {
-        final String targetUrl = determineTargetUrl(request, response, authentication);
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
+                                        Authentication authentication) throws IOException {
+        String targetUrl = determineTargetUrl(request, response, authentication);
 
         if (response.isCommitted()) {
-            log.debug("Response has already been committed. Unable to redirect to " + targetUrl);
+            log.debug("Response already committed. Unable to redirect to {}", targetUrl);
             return;
         }
 
@@ -44,35 +44,34 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     }
 
     @Override
-    public String determineTargetUrl(final HttpServletRequest request, final HttpServletResponse response,
-                                     final Authentication authentication) {
-        final Optional<String> redirectUri = CookieUtils.getCookie(request, REDIRECT_URI_PARAM_COOKIE_NAME).map(Cookie::getValue);
+    public String determineTargetUrl(HttpServletRequest request, HttpServletResponse response,
+                                     Authentication authentication) {
+        Optional<String> redirectUri = CookieUtils.getCookie(request, REDIRECT_URI_COOKIE).map(Cookie::getValue);
 
         if (redirectUri.isPresent() && !isAuthorizedRedirectUri(redirectUri.get())) {
-            throw new BadRequestException("Sorry! We've got an Unauthorized Redirect URI and can't proceed with the authentication");
+            throw new BadRequestException("Unauthorized Redirect URI. Cannot proceed with authentication.");
         }
 
-        final String targetUrl = redirectUri.orElse(getDefaultTargetUrl());
-        final String token = tokenProvider.createToken(authentication);
+        String targetUrl = redirectUri.orElse(getDefaultTargetUrl());
+        String token = tokenProvider.createToken(authentication);
 
         return UriComponentsBuilder.fromUriString(targetUrl)
                 .queryParam("token", token)
                 .build().toUriString();
     }
 
-    private void clearAuthenticationAttributes(final HttpServletRequest request, final HttpServletResponse response) {
+    private void clearAuthenticationAttributes(HttpServletRequest request, HttpServletResponse response) {
         super.clearAuthenticationAttributes(request);
         httpCookieOAuth2AuthorizationRequestRepository.removeAuthorizationRequestCookies(request, response);
     }
 
-    private boolean isAuthorizedRedirectUri(final String uri) {
+    private boolean isAuthorizedRedirectUri(String uri) {
         URI clientRedirectUri = URI.create(uri);
 
         return applicationProperties.getOauth2().getAuthorizedRedirectUris()
                 .stream()
-                .anyMatch(authorizedRedirectUri -> {
-                    // Only validate host and port. Let the clients use different paths if they want to
-                    URI authorizedURI = URI.create(authorizedRedirectUri);
+                .anyMatch(authorizedUri -> {
+                    URI authorizedURI = URI.create(authorizedUri);
                     return authorizedURI.getHost().equalsIgnoreCase(clientRedirectUri.getHost())
                             && authorizedURI.getPort() == clientRedirectUri.getPort();
                 });

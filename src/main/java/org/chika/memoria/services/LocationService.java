@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.chika.memoria.client.MicrosoftGraphClient;
 import org.chika.memoria.dtos.CreateUpdateLocationDTO;
 import org.chika.memoria.exceptions.BadRequestException;
+import org.chika.memoria.exceptions.ForbiddenException;
 import org.chika.memoria.exceptions.ResourceNotFoundException;
 import org.chika.memoria.models.Collection;
 import org.chika.memoria.models.Location;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -43,7 +45,7 @@ public class LocationService {
             }
             return locationRepository.findAllByTakenYearAndCollectionId(year, collectionId);
         }
-        throw new BadRequestException("You are not owner of this collection");
+        throw new ForbiddenException("You are not owner of this collection");
     }
 
     @Transactional(readOnly = true)
@@ -55,7 +57,7 @@ public class LocationService {
         if (collectionRepository.existsByIdAndOwnerEmailOrUserEmailsContains(collectionId, ownerEmail, ownerEmail)) {
             return locationRepository.findAllByCollectionId(collectionId, pageable);
         }
-        throw new BadRequestException("You are not owner of this collection");
+        throw new ForbiddenException("You are not owner of this collection");
     }
 
     @Transactional(readOnly = true)
@@ -65,7 +67,7 @@ public class LocationService {
         if (collectionRepository.existsByIdAndOwnerEmailOrUserEmailsContains(location.getCollectionId(), ownerEmail, ownerEmail)) {
             return location;
         }
-        throw new BadRequestException("You don't have permission to get this location");
+        throw new ForbiddenException("You don't have permission to get this location");
     }
 
     @Transactional
@@ -86,11 +88,14 @@ public class LocationService {
 
             return locationRepository.save(location);
         }
-        throw new BadRequestException("You are not owner of this collection to create a location");
+        throw new ForbiddenException("You are not owner of this collection to create a location");
     }
 
     @Transactional
-    public Location update(final String ownerEmail, final CreateUpdateLocationDTO locationDTO) {
+    public Location update(final String id, final String ownerEmail, final CreateUpdateLocationDTO locationDTO) {
+        if (!Objects.equals(id, locationDTO.getId())) {
+            throw new BadRequestException("Location ID in path and request body do not match");
+        }
         Location location = locationRepository.findById(locationDTO.getId())
                 .orElseThrow(() -> new ResourceNotFoundException(Location.class.getSimpleName(), "id", locationDTO.getId()));
         final Collection collection = getCollectionById(location.getCollectionId());
@@ -102,7 +107,7 @@ public class LocationService {
 
             return locationRepository.save(location);
         }
-        throw new BadRequestException("You don't have permission update this location");
+        throw new ForbiddenException("You don't have permission update this location");
     }
 
     @Transactional
@@ -110,7 +115,7 @@ public class LocationService {
         if (collectionRepository.existsByIdAndOwnerEmail(collectionId, ownerEmail)) {
             locationRepository.deleteAllByCollectionId(collectionId);
         } else {
-            throw new BadRequestException("You are not owner of this collection to delete locations");
+            throw new ForbiddenException("You are not owner of this collection to delete locations");
         }
     }
 
@@ -126,7 +131,7 @@ public class LocationService {
 
             locationRepository.delete(location);
         } else {
-            throw new BadRequestException("You don't have permission update this location");
+            throw new ForbiddenException("You don't have permission update this location");
         }
     }
 

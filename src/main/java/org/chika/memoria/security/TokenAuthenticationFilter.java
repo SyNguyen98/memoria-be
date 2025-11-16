@@ -28,25 +28,43 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     private final ApplicationProperties applicationProperties;
     private final CustomUserDetailsService customUserDetailsService;
 
+    /**
+     * Processes the incoming HTTP request to authenticate the user based on a JWT token.
+     * <br>
+     * This method extracts the JWT token from the request, decodes it to retrieve the user ID,
+     * loads the user details, and sets the authentication in the security context. If an error
+     * occurs during this process, it logs the error and continues the filter chain.
+     */
     @Override
     protected void doFilterInternal(final HttpServletRequest request, final HttpServletResponse response,
                                     final FilterChain filterChain) throws ServletException, IOException {
         try {
+            // Extract the JWT token from the request
             String jwt = getJwtFromRequest(request);
 
+            // If the token is present and valid, authenticate the user
             if (StringUtils.hasText(jwt)) {
+                // Decode the JWT to retrieve the user ID
                 String userId = jwtDecoder().decode(jwt).getSubject();
 
+                // Load user details using the user ID
                 UserDetails userDetails = customUserDetailsService.loadUserById(userId);
+
+                // Create an authentication object with the user details
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+                // Set additional details for the authentication object
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
+                // Set the authentication in the security context
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception ex) {
+            // Log any errors that occur during authentication
             log.error("Could not set user authentication in security context", ex);
         }
 
+        // Continue the filter chain
         filterChain.doFilter(request, response);
     }
 

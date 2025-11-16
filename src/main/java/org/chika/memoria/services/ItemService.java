@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import org.chika.memoria.client.MicrosoftGraphClient;
 import org.chika.memoria.client.models.Item;
 import org.chika.memoria.dtos.ItemDTO;
-import org.chika.memoria.exceptions.BadRequestException;
+import org.chika.memoria.exceptions.ForbiddenException;
 import org.chika.memoria.exceptions.ResourceNotFoundException;
 import org.chika.memoria.models.Location;
 import org.chika.memoria.repositories.CollectionRepository;
@@ -31,7 +31,7 @@ public class ItemService {
                     .map(item -> thumbnailSize == null ? ItemDTO.convert(item) : ItemDTO.convert(item, thumbnailSize))
                     .toList();
         }
-        throw new BadRequestException("You don't have permission to get images in this Drive Item");
+        throw new ForbiddenException("You don't have permission to get images in this Drive Item");
     }
 
     public ItemDTO getImageByItemId(final String itemId) {

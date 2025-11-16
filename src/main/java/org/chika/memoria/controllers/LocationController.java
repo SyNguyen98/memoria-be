@@ -91,11 +91,12 @@ public class LocationController {
             @ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
     })
-    @PutMapping
-    public ResponseEntity<LocationDTO> updateLocation(@RequestBody final CreateUpdateLocationDTO locationDTO,
+    @PutMapping("/{id}")
+    public ResponseEntity<LocationDTO> updateLocation(@PathVariable final String id,
+                                                      @RequestBody final CreateUpdateLocationDTO locationDTO,
                                                       @CurrentUser UserPrincipal userPrincipal) {
         log.debug("PUT - update a location");
-        return ResponseEntity.ok(new LocationDTO(locationService.update(userPrincipal.getEmail(), locationDTO)));
+        return ResponseEntity.ok(new LocationDTO(locationService.update(id, userPrincipal.getEmail(), locationDTO)));
     }
 
     @Operation(summary = "Delete all locations by collection's ID", responses = {

@@ -39,7 +39,9 @@ public class CollectionController {
 
     @Operation(summary = "Get all collections that user have access to", responses = {
             @ApiResponse(responseCode = "200", description = "OK"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
+            @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content()),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content()),
+            @ApiResponse(responseCode = "403", description = "Forbidden", content = @Content())
     })
     @GetMapping
     public ResponseEntity<List<CollectionDTO>> getAllCollectionsThatHaveAccess(@CurrentUser UserPrincipal userPrincipal,
@@ -60,7 +62,9 @@ public class CollectionController {
 
     @Operation(summary = "Get all collections that current user owned", responses = {
             @ApiResponse(responseCode = "200", description = "OK"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
+            @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content()),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content()),
+            @ApiResponse(responseCode = "403", description = "Forbidden", content = @Content())
     })
     @GetMapping("/owned")
     public ResponseEntity<List<CollectionDTO>> getAllCollectionsThatOwned(@CurrentUser UserPrincipal userPrincipal, Pageable pageable) {
@@ -73,8 +77,9 @@ public class CollectionController {
 
     @Operation(summary = "Get all distinct years of collections that user have access to", responses = {
             @ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content()),
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content()),
-            @ApiResponse(responseCode = "403", description = "Bad Request", content = @Content())
+            @ApiResponse(responseCode = "403", description = "Forbidden", content = @Content())
     })
     @GetMapping("/years")
     public ResponseEntity<List<Integer>> getAllYearOfCollection(@CurrentUser UserPrincipal userPrincipal) {
@@ -84,8 +89,9 @@ public class CollectionController {
 
     @Operation(summary = "Get all distinct user emails of collections that user have access to", responses = {
             @ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content()),
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content()),
-            @ApiResponse(responseCode = "403", description = "Bad Request", content = @Content())
+            @ApiResponse(responseCode = "403", description = "Forbidden", content = @Content())
     })
     @GetMapping("/user-emails")
     public ResponseEntity<List<String>> getAllUserEmailsOfCollectionByOwnerEmail(@CurrentUser UserPrincipal userPrincipal) {
@@ -95,8 +101,9 @@ public class CollectionController {
 
     @Operation(summary = "Get a collection by ID", responses = {
             @ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content()),
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content()),
-            @ApiResponse(responseCode = "403", description = "Bad Request", content = @Content())
+            @ApiResponse(responseCode = "403", description = "Forbidden", content = @Content())
     })
     @GetMapping("/{id}")
     public ResponseEntity<CollectionDTO> getCollectionById(@CurrentUser UserPrincipal userPrincipal, @PathVariable final String id) {
@@ -106,8 +113,9 @@ public class CollectionController {
 
     @Operation(summary = "Get a collection by location's ID", responses = {
             @ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content()),
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content()),
-            @ApiResponse(responseCode = "403", description = "Bad Request", content = @Content())
+            @ApiResponse(responseCode = "403", description = "Forbidden", content = @Content())
     })
     @GetMapping("/locations/{locationId}")
     public ResponseEntity<CollectionDTO> getCollectionByLocationId(@CurrentUser UserPrincipal userPrincipal, @PathVariable final String locationId) {
@@ -117,7 +125,9 @@ public class CollectionController {
 
     @Operation(summary = "Create a collection", responses = {
             @ApiResponse(responseCode = "201", description = "Created"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
+            @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content()),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content()),
+            @ApiResponse(responseCode = "403", description = "Forbidden", content = @Content())
     })
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -130,23 +140,26 @@ public class CollectionController {
 
     @Operation(summary = "Update a collection", responses = {
             @ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content()),
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content()),
-            @ApiResponse(responseCode = "403", description = "Bad Request", content = @Content())
+            @ApiResponse(responseCode = "403", description = "Forbidden", content = @Content())
     })
-    @PutMapping
+    @PutMapping("/{id}")
     public ResponseEntity<CollectionDTO> updateCollection(@CurrentUser UserPrincipal userPrincipal,
+                                                          @PathVariable final String id,
                                                           @RequestBody @Valid final CreateUpdateCollectionDTO collectionDTO) {
         log.debug("PUT - update a collection");
-        return ResponseEntity.ok(new CollectionDTO(collectionService.update(userPrincipal.getEmail(), collectionDTO)));
+        return ResponseEntity.ok(new CollectionDTO(collectionService.update(userPrincipal.getEmail(), id, collectionDTO)));
     }
 
     @Operation(summary = "Update collection's locations", responses = {
             @ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content()),
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content()),
-            @ApiResponse(responseCode = "403", description = "Bad Request", content = @Content())
+            @ApiResponse(responseCode = "403", description = "Forbidden", content = @Content())
     })
     @PutMapping("/locations")
-    public ResponseEntity<Void> updateCollection() {
+    public ResponseEntity<Void> updateCollectionLocations() {
         log.debug("PUT - update collection's locations");
         collectionLocationService.updateCollectionLocations();
         return ResponseEntity.ok().build();
@@ -154,8 +167,9 @@ public class CollectionController {
 
     @Operation(summary = "Delete a collection by ID", responses = {
             @ApiResponse(responseCode = "204", description = "No Content"),
+            @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content()),
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content()),
-            @ApiResponse(responseCode = "403", description = "Bad Request", content = @Content())
+            @ApiResponse(responseCode = "403", description = "Forbidden", content = @Content())
     })
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)

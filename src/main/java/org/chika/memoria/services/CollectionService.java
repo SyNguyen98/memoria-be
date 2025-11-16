@@ -5,6 +5,7 @@ import org.chika.memoria.client.MicrosoftGraphClient;
 import org.chika.memoria.constants.Tag;
 import org.chika.memoria.dtos.CreateUpdateCollectionDTO;
 import org.chika.memoria.exceptions.BadRequestException;
+import org.chika.memoria.exceptions.ForbiddenException;
 import org.chika.memoria.exceptions.ResourceNotFoundException;
 import org.chika.memoria.models.Collection;
 import org.chika.memoria.models.Location;
@@ -17,11 +18,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @AllArgsConstructor
 public class CollectionService {
 
+    // Root drive item ID in Microsoft OneDrive
     private static final String ROOT_DRIVE_ITEM_ID = "6713014C02E57D90!113706";
 
     private final CollectionRepository collectionRepository;
@@ -34,7 +37,7 @@ public class CollectionService {
         if (collection.getOwnerEmail().equals(userEmail)) {
             return collection;
         }
-        throw new BadRequestException("You are not owner of this collection");
+        throw new ForbiddenException("You are not owner of this collection");
     }
 
     public Collection findByLocationId(final String userEmail, final String locationId) {
@@ -77,14 +80,17 @@ public class CollectionService {
     }
 
     @Transactional
-    public Collection update(final String ownerEmail, final CreateUpdateCollectionDTO collectionDTO) {
+    public Collection update(final String ownerEmail, final String id, final CreateUpdateCollectionDTO collectionDTO) {
+        if (!Objects.equals(id, collectionDTO.getId())) {
+            throw new BadRequestException("Collection ID in path and request body do not match");
+        }
         final Collection collection = collectionRepository.findById(collectionDTO.getId())
                 .orElseThrow(() -> new ResourceNotFoundException(Collection.class.getName(), "id", collectionDTO.getId()));
         if (collection.getOwnerEmail().equals(ownerEmail)) {
             microsoftGraphClient.updateDriveItem(collection.getDriveItemId(), collectionDTO.getName());
             return collectionRepository.save(collectionDTO.update(collection));
         }
-        throw new BadRequestException("You don't have permission to update this collection");
+        throw new ForbiddenException("You don't have permission to update this collection");
     }
 
     @Transactional
@@ -92,9 +98,9 @@ public class CollectionService {
         if (collectionRepository.existsByIdAndOwnerEmail(id, userEmail)) {
             locationRepository.deleteAllByCollectionId(id);
             collectionRepository.deleteById(id);
-        } else {
-            throw new BadRequestException("You don't have permission to delete this collection");
+            return;
         }
+        throw new ForbiddenException("You don't have permission to delete this collection");
     }
 
     @Transactional

@@ -23,7 +23,6 @@ public class TokenProvider {
     private static final JwsHeader JWS_HEADER = JwsHeader.with(SignatureAlgorithm.RS256).type("JWT").build();
 
     private final ApplicationProperties applicationProperties;
-
     private final NimbusJwtEncoder encoder;
 
     public TokenProvider(final ApplicationProperties applicationProperties) {

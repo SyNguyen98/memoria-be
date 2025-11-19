@@ -3,7 +3,8 @@ package org.chika.memoria.services;
 import lombok.AllArgsConstructor;
 import org.chika.memoria.client.MicrosoftGraphClient;
 import org.chika.memoria.constants.Tag;
-import org.chika.memoria.dtos.CreateUpdateCollectionDTO;
+import org.chika.memoria.converters.CollectionConverter;
+import org.chika.memoria.dtos.CollectionRecord;
 import org.chika.memoria.exceptions.BadRequestException;
 import org.chika.memoria.exceptions.ForbiddenException;
 import org.chika.memoria.exceptions.ResourceNotFoundException;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -30,6 +32,7 @@ public class CollectionService {
     private final CollectionRepository collectionRepository;
     private final LocationRepository locationRepository;
     private final MicrosoftGraphClient microsoftGraphClient;
+    private final CollectionConverter collectionConverter;
 
     public Collection findById(final String userEmail, final String id) {
         final var collection = collectionRepository.findById(id)
@@ -63,10 +66,10 @@ public class CollectionService {
     }
 
     @Transactional
-    public Collection create(final String ownerEmail, final CreateUpdateCollectionDTO collectionDTO) {
-        final Collection collection = collectionDTO.createNew(ownerEmail);
+    public Collection create(final String ownerEmail, final CollectionRecord collectionRecord) {
+        final Collection collection = collectionConverter.toEntity(collectionRecord, ownerEmail);
 
-        final String driveItemId = microsoftGraphClient.createFolderInDriveItem(ROOT_DRIVE_ITEM_ID, collectionDTO.getName()).getId();
+        final String driveItemId = microsoftGraphClient.createFolderInDriveItem(ROOT_DRIVE_ITEM_ID, collection.getName()).getId();
         collection.setDriveItemId(driveItemId);
 
 //        final File file = new File(String.format("%s/%s", System.getProperty("java.io.tmpdir"), image.getOriginalFilename()));
@@ -80,15 +83,21 @@ public class CollectionService {
     }
 
     @Transactional
-    public Collection update(final String ownerEmail, final String id, final CreateUpdateCollectionDTO collectionDTO) {
-        if (!Objects.equals(id, collectionDTO.getId())) {
+    public Collection update(final String ownerEmail, final String id, final CollectionRecord collectionRecord) {
+        if (!Objects.equals(id, collectionRecord.id())) {
             throw new BadRequestException("Collection ID in path and request body do not match");
         }
-        final Collection collection = collectionRepository.findById(collectionDTO.getId())
-                .orElseThrow(() -> new ResourceNotFoundException(Collection.class.getName(), "id", collectionDTO.getId()));
+        final Collection collection = collectionRepository.findById(collectionRecord.id())
+                .orElseThrow(() -> new ResourceNotFoundException(Collection.class.getName(), "id", collectionRecord.id()));
         if (collection.getOwnerEmail().equals(ownerEmail)) {
-            microsoftGraphClient.updateDriveItem(collection.getDriveItemId(), collectionDTO.getName());
-            return collectionRepository.save(collectionDTO.update(collection));
+            microsoftGraphClient.updateDriveItem(collection.getDriveItemId(), collectionRecord.name());
+
+            collection.setName(collectionRecord.name());
+            collection.setDescription(collectionRecord.description());
+            collection.setTags(collectionRecord.tags());
+            collection.setUserEmails(collectionRecord.userEmails());
+            collection.setLastModifiedDate(Instant.now());
+            return collectionRepository.save(collection);
         }
         throw new ForbiddenException("You don't have permission to update this collection");
     }

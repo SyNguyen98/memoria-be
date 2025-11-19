@@ -4,10 +4,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.chika.memoria.dtos.CreateUpdateLocationDTO;
-import org.chika.memoria.dtos.LocationDTO;
+import org.chika.memoria.converters.LocationConverter;
+import org.chika.memoria.dtos.LocationRecord;
 import org.chika.memoria.models.Location;
 import org.chika.memoria.security.CurrentUser;
 import org.chika.memoria.security.UserPrincipal;
@@ -33,19 +34,20 @@ import java.util.List;
 public class LocationController {
 
     private final LocationService locationService;
+    private final LocationConverter locationConverter;
 
     @Operation(summary = "Get all locations by params that user have access", responses = {
             @ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
     })
     @GetMapping("/all")
-    public ResponseEntity<List<LocationDTO>> getAllLocationsUserHaveAccessByParams(@CurrentUser UserPrincipal userPrincipal,
-                                                                                   @RequestParam(required = false) final String collectionId,
-                                                                                   @RequestParam(required = false) final Integer year) {
+    public ResponseEntity<List<LocationRecord>> getAllLocationsUserHaveAccessByParams(@CurrentUser UserPrincipal userPrincipal,
+                                                                                      @RequestParam(required = false) final String collectionId,
+                                                                                      @RequestParam(required = false) final Integer year) {
         log.debug("GET - get all locations that user have access by params");
         final String email = userPrincipal.getEmail();
         final List<Location> list = locationService.findAllThatUserHaveAccessByParams(collectionId, year, email);
-        return ResponseEntity.ok(list.stream().map(LocationDTO::new).toList());
+        return ResponseEntity.ok(list.stream().map(locationConverter::toRecord).toList());
     }
 
     @Operation(summary = "Get all locations (paging) by params that user have access", responses = {
@@ -53,14 +55,14 @@ public class LocationController {
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
     })
     @GetMapping
-    public ResponseEntity<List<LocationDTO>> getAllLocationsUserHaveAccessByParams(@CurrentUser UserPrincipal userPrincipal,
-                                                                                   @RequestParam(required = false) final String collectionId,
-                                                                                   Pageable pageable) {
+    public ResponseEntity<List<LocationRecord>> getAllLocationsUserHaveAccessByParams(@CurrentUser UserPrincipal userPrincipal,
+                                                                                      @RequestParam(required = false) final String collectionId,
+                                                                                      Pageable pageable) {
         log.debug("GET - get all locations (paging) that user have access by params");
         final String email = userPrincipal.getEmail();
         final Page<Location> page = locationService.findAllThatUserHaveAccessByParams(collectionId, email, pageable);
         final HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
-        return ResponseEntity.ok().headers(headers).body(page.stream().map(LocationDTO::new).toList());
+        return ResponseEntity.ok().headers(headers).body(page.stream().map(locationConverter::toRecord).toList());
     }
 
     @Operation(summary = "Get location by ID", responses = {
@@ -68,10 +70,10 @@ public class LocationController {
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
     })
     @GetMapping("/{id}")
-    public ResponseEntity<LocationDTO> getLocationId(@PathVariable final String id, @CurrentUser UserPrincipal userPrincipal) {
+    public ResponseEntity<LocationRecord> getLocationId(@PathVariable final String id, @CurrentUser UserPrincipal userPrincipal) {
         log.debug("GET - get location ID");
         final String email = userPrincipal.getEmail();
-        return ResponseEntity.ok(new LocationDTO(locationService.findById(email, id)));
+        return ResponseEntity.ok(locationConverter.toRecord(locationService.findById(email, id)));
     }
 
     @Operation(summary = "Create a location", responses = {
@@ -80,11 +82,12 @@ public class LocationController {
     })
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<LocationDTO> createLocation(@RequestBody final CreateUpdateLocationDTO locationDTO,
-                                                      @CurrentUser UserPrincipal userPrincipal) throws URISyntaxException {
+    public ResponseEntity<LocationRecord> createLocation(@RequestBody @Valid LocationRecord locationRecord,
+                                                         @CurrentUser UserPrincipal userPrincipal) throws URISyntaxException {
         log.debug("POST - create a location");
-        final Location location = locationService.create(userPrincipal.getEmail(), locationDTO);
-        return ResponseEntity.created(new URI("/api/locations/" + location.getId())).body(new LocationDTO(location));
+        final Location location = locationService.create(userPrincipal.getEmail(), locationRecord);
+        return ResponseEntity.created(new URI("/api/locations/" + location.getId()))
+                .body(locationConverter.toRecord(location));
     }
 
     @Operation(summary = "Update a location", responses = {
@@ -92,11 +95,12 @@ public class LocationController {
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content())
     })
     @PutMapping("/{id}")
-    public ResponseEntity<LocationDTO> updateLocation(@PathVariable final String id,
-                                                      @RequestBody final CreateUpdateLocationDTO locationDTO,
-                                                      @CurrentUser UserPrincipal userPrincipal) {
+    public ResponseEntity<LocationRecord> updateLocation(@PathVariable String id,
+                                                         @RequestBody @Valid LocationRecord locationRecord,
+                                                         @CurrentUser UserPrincipal userPrincipal) {
         log.debug("PUT - update a location");
-        return ResponseEntity.ok(new LocationDTO(locationService.update(id, userPrincipal.getEmail(), locationDTO)));
+        final var location = locationService.update(id, userPrincipal.getEmail(), locationRecord);
+        return ResponseEntity.ok(locationConverter.toRecord(location));
     }
 
     @Operation(summary = "Delete all locations by collection's ID", responses = {

@@ -7,8 +7,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.chika.memoria.dtos.CollectionDTO;
-import org.chika.memoria.dtos.CreateUpdateCollectionDTO;
+import org.chika.memoria.converters.CollectionConverter;
+import org.chika.memoria.dtos.CollectionRecord;
 import org.chika.memoria.models.Collection;
 import org.chika.memoria.security.CurrentUser;
 import org.chika.memoria.security.UserPrincipal;
@@ -36,6 +36,7 @@ public class CollectionController {
 
     private final CollectionService collectionService;
     private final CollectionLocationService collectionLocationService;
+    private final CollectionConverter collectionConverter;
 
     @Operation(summary = "Get all collections that user have access to", responses = {
             @ApiResponse(responseCode = "200", description = "OK"),
@@ -44,20 +45,20 @@ public class CollectionController {
             @ApiResponse(responseCode = "403", description = "Forbidden", content = @Content())
     })
     @GetMapping
-    public ResponseEntity<List<CollectionDTO>> getAllCollectionsThatHaveAccess(@CurrentUser UserPrincipal userPrincipal,
-                                                                               @RequestParam(required = false) String tags,
-                                                                               @RequestParam(required = false, defaultValue = "false") boolean unpaged,
-                                                                               Pageable pageable) {
+    public ResponseEntity<List<CollectionRecord>> getAllCollectionsThatHaveAccess(@CurrentUser UserPrincipal userPrincipal,
+                                                                                  @RequestParam(required = false) String tags,
+                                                                                  @RequestParam(required = false, defaultValue = "false") boolean unpaged,
+                                                                                  Pageable pageable) {
         log.debug("GET - get all collections that user have access to");
         final String email = userPrincipal.getEmail();
         if (unpaged) {
-            final List<CollectionDTO> collectionDTOS = collectionService.findAllHaveAccessByParams(email)
-                    .stream().map(CollectionDTO::new).toList();
-            return ResponseEntity.ok(collectionDTOS);
+            final List<CollectionRecord> collectionRecords = collectionService.findAllHaveAccessByParams(email)
+                    .stream().map(collectionConverter::toRecord).toList();
+            return ResponseEntity.ok(collectionRecords);
         }
         final Page<Collection> page = collectionService.findAllHaveAccessByParams(email, tags, pageable);
         final HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
-        return ResponseEntity.ok().headers(headers).body(page.stream().map(CollectionDTO::new).toList());
+        return ResponseEntity.ok().headers(headers).body(page.stream().map(collectionConverter::toRecord).toList());
     }
 
     @Operation(summary = "Get all collections that current user owned", responses = {
@@ -67,12 +68,12 @@ public class CollectionController {
             @ApiResponse(responseCode = "403", description = "Forbidden", content = @Content())
     })
     @GetMapping("/owned")
-    public ResponseEntity<List<CollectionDTO>> getAllCollectionsThatOwned(@CurrentUser UserPrincipal userPrincipal, Pageable pageable) {
+    public ResponseEntity<List<CollectionRecord>> getAllCollectionsThatOwned(@CurrentUser UserPrincipal userPrincipal, Pageable pageable) {
         log.debug("GET - get all collections that current user owned");
         final String email = userPrincipal.getEmail();
         final Page<Collection> page = collectionService.findAllByOwnerEmail(email, pageable);
         final HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
-        return ResponseEntity.ok().headers(headers).body(page.stream().map(CollectionDTO::new).toList());
+        return ResponseEntity.ok().headers(headers).body(page.stream().map(collectionConverter::toRecord).toList());
     }
 
     @Operation(summary = "Get all distinct years of collections that user have access to", responses = {
@@ -106,9 +107,9 @@ public class CollectionController {
             @ApiResponse(responseCode = "403", description = "Forbidden", content = @Content())
     })
     @GetMapping("/{id}")
-    public ResponseEntity<CollectionDTO> getCollectionById(@CurrentUser UserPrincipal userPrincipal, @PathVariable final String id) {
+    public ResponseEntity<CollectionRecord> getCollectionById(@CurrentUser UserPrincipal userPrincipal, @PathVariable final String id) {
         log.debug("GET - get a collection by id");
-        return ResponseEntity.ok(new CollectionDTO(collectionService.findById(userPrincipal.getEmail(), id)));
+        return ResponseEntity.ok(collectionConverter.toRecord(collectionService.findById(userPrincipal.getEmail(), id)));
     }
 
     @Operation(summary = "Get a collection by location's ID", responses = {
@@ -118,9 +119,9 @@ public class CollectionController {
             @ApiResponse(responseCode = "403", description = "Forbidden", content = @Content())
     })
     @GetMapping("/locations/{locationId}")
-    public ResponseEntity<CollectionDTO> getCollectionByLocationId(@CurrentUser UserPrincipal userPrincipal, @PathVariable final String locationId) {
+    public ResponseEntity<CollectionRecord> getCollectionByLocationId(@CurrentUser UserPrincipal userPrincipal, @PathVariable final String locationId) {
         log.debug("GET - get a collection by location id");
-        return ResponseEntity.ok(new CollectionDTO(collectionService.findByLocationId(userPrincipal.getEmail(), locationId)));
+        return ResponseEntity.ok(collectionConverter.toRecord(collectionService.findByLocationId(userPrincipal.getEmail(), locationId)));
     }
 
     @Operation(summary = "Create a collection", responses = {
@@ -131,11 +132,11 @@ public class CollectionController {
     })
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<CollectionDTO> createCollection(@CurrentUser UserPrincipal userPrincipal,
-                                                          @RequestBody final CreateUpdateCollectionDTO collectionDTO) throws URISyntaxException {
+    public ResponseEntity<CollectionRecord> createCollection(@CurrentUser UserPrincipal userPrincipal,
+                                                             @RequestBody @Valid CollectionRecord collectionRecord) throws URISyntaxException {
         log.debug("POST - create a collection");
-        final var collection = collectionService.create(userPrincipal.getEmail(), collectionDTO);
-        return ResponseEntity.created(new URI("/api/collections/" + collection.getId())).body(new CollectionDTO(collection));
+        final var collection = collectionService.create(userPrincipal.getEmail(), collectionRecord);
+        return ResponseEntity.created(new URI("/api/collections/" + collection.getId())).body(collectionConverter.toRecord(collection));
     }
 
     @Operation(summary = "Update a collection", responses = {
@@ -145,11 +146,12 @@ public class CollectionController {
             @ApiResponse(responseCode = "403", description = "Forbidden", content = @Content())
     })
     @PutMapping("/{id}")
-    public ResponseEntity<CollectionDTO> updateCollection(@CurrentUser UserPrincipal userPrincipal,
-                                                          @PathVariable final String id,
-                                                          @RequestBody @Valid final CreateUpdateCollectionDTO collectionDTO) {
+    public ResponseEntity<CollectionRecord> updateCollection(@CurrentUser UserPrincipal userPrincipal,
+                                                             @PathVariable final String id,
+                                                             @RequestBody @Valid final CollectionRecord collectionRecord) {
         log.debug("PUT - update a collection");
-        return ResponseEntity.ok(new CollectionDTO(collectionService.update(userPrincipal.getEmail(), id, collectionDTO)));
+        final var collection = collectionService.update(userPrincipal.getEmail(), id, collectionRecord);
+        return ResponseEntity.ok(collectionConverter.toRecord(collection));
     }
 
     @Operation(summary = "Update collection's locations", responses = {

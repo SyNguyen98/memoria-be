@@ -3,7 +3,8 @@ package org.chika.memoria.services;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.chika.memoria.client.MicrosoftGraphClient;
-import org.chika.memoria.dtos.CreateUpdateLocationDTO;
+import org.chika.memoria.converters.LocationConverter;
+import org.chika.memoria.dtos.LocationRecord;
 import org.chika.memoria.exceptions.BadRequestException;
 import org.chika.memoria.exceptions.ForbiddenException;
 import org.chika.memoria.exceptions.ResourceNotFoundException;
@@ -29,6 +30,7 @@ public class LocationService {
     private final CollectionRepository collectionRepository;
     private final MicrosoftGraphClient microsoftGraphClient;
     private final CollectionLocationService collectionLocationService;
+    private final LocationConverter locationConverter;
 
     @Transactional(readOnly = true)
     public List<Location> findAllThatUserHaveAccessByParams(final String collectionId, final Integer year, final String ownerEmail) {
@@ -71,15 +73,15 @@ public class LocationService {
     }
 
     @Transactional
-    public Location create(final String ownerEmail, final CreateUpdateLocationDTO locationDTO) {
-        Collection collection = getCollectionById(locationDTO.getCollectionId());
+    public Location create(final String ownerEmail, final LocationRecord locationRecord) {
+        Collection collection = getCollectionById(locationRecord.id());
 
         // Check Ownership
         if (collection.getOwnerEmail().equals(ownerEmail)) {
-            final Location location = locationDTO.convert();
+            final Location location = locationConverter.toEntity(locationRecord);
 
             // Create Folder in Drive
-            final String driveItemId = microsoftGraphClient.createFolderInDriveItem(collection.getDriveItemId(), locationDTO.getPlace()).getId();
+            final String driveItemId = microsoftGraphClient.createFolderInDriveItem(collection.getDriveItemId(), location.getPlace()).getId();
             location.setDriveItemId(driveItemId);
 
             collection = collectionLocationService.updateCollectionLocation(collection, location);
@@ -92,15 +94,21 @@ public class LocationService {
     }
 
     @Transactional
-    public Location update(final String id, final String ownerEmail, final CreateUpdateLocationDTO locationDTO) {
-        if (!Objects.equals(id, locationDTO.getId())) {
+    public Location update(final String id, final String ownerEmail, final LocationRecord locationRecord) {
+        if (!Objects.equals(id, locationRecord.id())) {
             throw new BadRequestException("Location ID in path and request body do not match");
         }
-        Location location = locationRepository.findById(locationDTO.getId())
-                .orElseThrow(() -> new ResourceNotFoundException(Location.class.getSimpleName(), "id", locationDTO.getId()));
+        Location location = locationRepository.findById(locationRecord.id())
+                .orElseThrow(() -> new ResourceNotFoundException(Location.class.getSimpleName(), "id", locationRecord.id()));
         final Collection collection = getCollectionById(location.getCollectionId());
         if (collection.getOwnerEmail().equals(ownerEmail)) {
-            location = locationDTO.update(location);
+            location.setTakenYear(locationRecord.takenYear());
+            location.setTakenMonth(locationRecord.takenMonth());
+            location.setTakenDay(locationRecord.takenDay());
+            location.setTakenTime(locationRecord.takenTime());
+            location.setCoordinate(locationRecord.coordinate());
+            location.setPlace(locationRecord.place());
+            location.setDescription(locationRecord.description());
 
             collection.setLastModifiedDate(Instant.now());
             collectionRepository.save(collection);
@@ -114,9 +122,9 @@ public class LocationService {
     public void deleteAllByCollectionId(final String ownerEmail, final String collectionId) {
         if (collectionRepository.existsByIdAndOwnerEmail(collectionId, ownerEmail)) {
             locationRepository.deleteAllByCollectionId(collectionId);
-        } else {
-            throw new ForbiddenException("You are not owner of this collection to delete locations");
+            return;
         }
+        throw new ForbiddenException("You are not owner of this collection to delete locations");
     }
 
     @Transactional
@@ -125,14 +133,13 @@ public class LocationService {
                 .orElseThrow(() -> new ResourceNotFoundException(Location.class.getName(), "id", id));
         final Collection collection = getCollectionById(location.getCollectionId());
         if (collection.getOwnerEmail().equals(ownerEmail)) {
-
             collection.setLastModifiedDate(Instant.now());
             collectionRepository.save(collection);
 
             locationRepository.delete(location);
-        } else {
-            throw new ForbiddenException("You don't have permission update this location");
+            return;
         }
+        throw new ForbiddenException("You don't have permission update this location");
     }
 
     private Collection getCollectionById(String id) {

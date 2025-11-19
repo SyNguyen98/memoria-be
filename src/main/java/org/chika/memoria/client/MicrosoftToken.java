@@ -4,7 +4,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.chika.memoria.dtos.AccessTokenDTO;
+import org.chika.memoria.dtos.AccessTokenRecord;
 import org.chika.memoria.models.MsToken;
 import org.chika.memoria.properties.MemoriaProperties;
 import org.chika.memoria.repositories.MsTokenRepository;
@@ -49,12 +49,12 @@ public class MicrosoftToken {
         HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(bodyMap, headers);
 
         log.debug("[MicrosoftToken#getAccessAndRefreshToken] ---> POST {}", MICROSOFT_TOKEN_URL);
-        ResponseEntity<AccessTokenDTO> response = new RestTemplate().exchange(MICROSOFT_TOKEN_URL, HttpMethod.POST, entity, AccessTokenDTO.class);
+        ResponseEntity<AccessTokenRecord> response = new RestTemplate().exchange(MICROSOFT_TOKEN_URL, HttpMethod.POST, entity, AccessTokenRecord.class);
         log.debug("[MicrosoftToken#getAccessAndRefreshToken] <--- HTTP/1.1 {}", response.getStatusCode());
 
         if (response.getBody() != null) {
-            this.accessToken = "Bearer " + response.getBody().getAccessToken();
-            this.refreshToken = response.getBody().getRefreshToken();
+            this.accessToken = "Bearer " + response.getBody().accessToken();
+            this.refreshToken = response.getBody().refreshToken();
 
             msTokenRepository.deleteAll();
             msTokenRepository.save(MsToken.builder()

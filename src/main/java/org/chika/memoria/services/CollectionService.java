@@ -68,6 +68,7 @@ public class CollectionService {
     @Transactional
     public Collection create(final String ownerEmail, final CollectionRecord collectionRecord) {
         final Collection collection = collectionConverter.toEntity(collectionRecord, ownerEmail);
+        collection.setLastModifiedDate(Instant.now());
 
         final String driveItemId = microsoftGraphClient.createFolderInDriveItem(ROOT_DRIVE_ITEM_ID, collection.getName()).getId();
         collection.setDriveItemId(driveItemId);

@@ -74,7 +74,7 @@ public class LocationService {
 
     @Transactional
     public Location create(final String ownerEmail, final LocationRecord locationRecord) {
-        Collection collection = getCollectionById(locationRecord.id());
+        Collection collection = getCollectionById(locationRecord.collectionId());
 
         // Check Ownership
         if (collection.getOwnerEmail().equals(ownerEmail)) {
@@ -85,7 +85,6 @@ public class LocationService {
             location.setDriveItemId(driveItemId);
 
             collection = collectionLocationService.updateCollectionLocation(collection, location);
-
             collectionRepository.save(collection);
 
             return locationRepository.save(location);

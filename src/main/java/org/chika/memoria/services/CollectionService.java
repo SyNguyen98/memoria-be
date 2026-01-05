@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -51,10 +52,6 @@ public class CollectionService {
 
     public Page<Collection> findAllByOwnerEmail(final String ownerEmail, Pageable pageable) {
         return collectionRepository.findAllByOwnerEmail(ownerEmail, pageable);
-    }
-
-    public List<Collection> findAllHaveAccessByParams(final String userEmail) {
-        return collectionRepository.findAllByOwnerEmailOrUserEmailsContains(userEmail, userEmail);
     }
 
     public Page<Collection> findAllHaveAccessByParams(final String userEmail, final String tag, Pageable pageable) {
@@ -114,7 +111,10 @@ public class CollectionService {
     }
 
     @Transactional
-    public List<Integer> getAllDistinctTakenYearsOfCollectionsHaveAccess(final String ownerEmail) {
+    public List<Integer> getAllDistinctTakenYearsOfCollectionsHaveAccess(final String ownerEmail, final String collectionId) {
+        if (collectionId != null && !collectionId.isBlank()) {
+            return locationRepository.findDistinctTakenYearByCollectionIdIn(Collections.singletonList(collectionId));
+        }
         final List<String> collectionIds = collectionRepository.findAllByOwnerEmailOrUserEmailsContains(ownerEmail, ownerEmail)
                 .stream()
                 .map(Collection::getId)

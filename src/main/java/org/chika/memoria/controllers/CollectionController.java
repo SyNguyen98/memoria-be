@@ -16,6 +16,7 @@ import org.chika.memoria.services.CollectionLocationService;
 import org.chika.memoria.services.CollectionService;
 import org.chika.memoria.utils.PaginationUtil;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -52,7 +53,8 @@ public class CollectionController {
         log.debug("GET - get all collections that user have access to");
         final String email = userPrincipal.getEmail();
         if (unpaged) {
-            final List<CollectionRecord> collectionRecords = collectionService.findAllHaveAccessByParams(email)
+            Pageable sortedUnpaged = PageRequest.of(0, Integer.MAX_VALUE, pageable.getSort());
+            final List<CollectionRecord> collectionRecords = collectionService.findAllHaveAccessByParams(email, tags, sortedUnpaged)
                     .stream().map(collectionConverter::toRecord).toList();
             return ResponseEntity.ok(collectionRecords);
         }
@@ -76,16 +78,17 @@ public class CollectionController {
         return ResponseEntity.ok().headers(headers).body(page.stream().map(collectionConverter::toRecord).toList());
     }
 
-    @Operation(summary = "Get all distinct years of collections that user have access to", responses = {
+    @Operation(summary = "Get all distinct years of collection(s) that user have access to", responses = {
             @ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content()),
             @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content()),
             @ApiResponse(responseCode = "403", description = "Forbidden", content = @Content())
     })
     @GetMapping("/years")
-    public ResponseEntity<List<Integer>> getAllYearOfCollection(@CurrentUser UserPrincipal userPrincipal) {
-        log.debug("GET - get all distinct years of collections that user have access to");
-        return ResponseEntity.ok(collectionService.getAllDistinctTakenYearsOfCollectionsHaveAccess(userPrincipal.getEmail()));
+    public ResponseEntity<List<Integer>> getAllYearOfCollection(@CurrentUser UserPrincipal userPrincipal,
+                                                                @RequestParam(required = false) String collectionId) {
+        log.debug("GET - get all distinct years of collection(s) that user have access to");
+        return ResponseEntity.ok(collectionService.getAllDistinctTakenYearsOfCollectionsHaveAccess(userPrincipal.getEmail(), collectionId));
     }
 
     @Operation(summary = "Get all distinct user emails of collections that user have access to", responses = {

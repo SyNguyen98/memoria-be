@@ -5,9 +5,10 @@ logging:
 spring:
   main:
     allow-bean-definition-overriding: true
+  mongodb:
+    uri: mongodb+srv://chika:${MONGODB_PASSWORD}@cluster0.dgqgb.mongodb.net/memoria
   data:
     mongodb:
-      uri: mongodb+srv://chika:${MONGODB_PASSWORD}@cluster0.dgqgb.mongodb.net/memoria
       auto-index-creation: true
   security:
     oauth2:

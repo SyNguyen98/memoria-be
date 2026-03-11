@@ -16,7 +16,7 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 @OpenAPIDefinition(info = @Info(title = "MEMORIA API", version = "1.1.0"), security = @SecurityRequirement(name = "bearer-jwt"))
 public class MemoriaApplication {
 
-	public static void main(String[] args) {
+	static void main(String[] args) {
 		SpringApplication.run(MemoriaApplication.class, args);
 	}
 }
